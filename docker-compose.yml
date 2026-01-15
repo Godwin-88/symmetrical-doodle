@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with pgvector extension
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: trading-postgres
+    environment:
+      POSTGRES_DB: trading_system
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Neo4j with Graph Data Science
+  neo4j:
+    image: neo4j:5.14-enterprise
+    container_name: trading-neo4j
+    environment:
+      NEO4J_AUTH: neo4j/password
+      NEO4J_PLUGINS: '["graph-data-science"]'
+      NEO4J_dbms_security_procedures_unrestricted: gds.*
+      NEO4J_dbms_security_procedures_allowlist: gds.*
+      NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/var/lib/neo4j/import
+      - neo4j_plugins:/plugins
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "password", "RETURN 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and message queuing
+  redis:
+    image: redis:7-alpine
+    container_name: trading-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Intelligence Layer (Python FastAPI)
+  intelligence-api:
+    build:
+      context: ./intelligence-layer
+      dockerfile: Dockerfile
+    container_name: trading-intelligence-api
+    environment:
+      INTELLIGENCE_DATABASE__POSTGRES_URL: postgresql://postgres:password@postgres:5432/trading_system
+      INTELLIGENCE_DATABASE__NEO4J_URL: bolt://neo4j:7687
+      INTELLIGENCE_DATABASE__NEO4J_USER: neo4j
+      INTELLIGENCE_DATABASE__NEO4J_PASSWORD: password
+      INTELLIGENCE_REDIS__URL: redis://redis:6379
+      INTELLIGENCE_LOGGING__LEVEL: INFO
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./intelligence-layer:/app
+    command: uvicorn intelligence_layer.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Execution Core (Rust)
+  execution-core:
+    build:
+      context: .
+      dockerfile: execution-core/Dockerfile
+    container_name: trading-execution-core
+    environment:
+      TRADING_DATABASE__POSTGRES_URL: postgresql://postgres:password@postgres:5432/trading_system
+      TRADING_REDIS__URL: redis://redis:6379
+      TRADING_LOGGING__LEVEL: info
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./execution-core:/app
+
+  # Frontend (React)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: trading-frontend
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+      VITE_REAL_TIME_UPDATES: "true"
+      VITE_DEBUG_MODE: "true"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - intelligence-api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+  neo4j_data:
+  neo4j_logs:
+  neo4j_import:
+  neo4j_plugins:
+  redis_data:
+
+networks:
+  default:
+    name: trading-network

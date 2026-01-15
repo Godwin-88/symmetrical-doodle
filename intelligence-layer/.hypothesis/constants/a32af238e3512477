@@ -1,0 +1,4 @@
+# file: C:\Users\ThinkPad\Documents\Afripay\Masters\intelligence-layer\src\intelligence_layer\config.py
+# hypothesis_version: 6.150.0
+
+[0.001, 128, 8000, '0.0.0.0', 'INFO', 'INTELLIGENCE_', 'TCN', '__', 'development', 'json', 'neo4j', 'password']

@@ -1,0 +1,4 @@
+# file: C:\Users\ThinkPad\Documents\Afripay\Masters\intelligence-layer\src\intelligence_layer\graph_analytics.py
+# hypothesis_version: 6.150.0
+
+[0.85, 1000, 'Asset', 'CORRELATED', 'MarketRegime', 'PERFORMS_IN', 'RETURN 1', 'Strategy', 'TRANSITIONS_TO', 'algorithm', 'analysis_type', 'asset_class', 'asset_correlation', 'asset_id', 'avg_duration', 'betweenness', 'centrality', 'centrality_score', 'cluster_id', 'clustering', 'communityId', 'community_id', 'contagion_risk', 'dampingFactor', 'degree_centrality', 'dominance_score', 'family', 'horizon', 'louvain', 'maxIterations', 'max_dd', 'node', 'nodeId', 'node_id', 'node_properties', 'pagerank', 'pagerank_score', 'probability', 'properties', 'regime_id', 'regime_transition', 'sample_size', 'score', 'sharpe', 'sign', 'strategy_id', 'strategy_performance', 'strength', 'systemic_exposure', 'systemic_risk_proxy', 'timestamp', 'trend_state', 'venue', 'volatility_level', 'window']

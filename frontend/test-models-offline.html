@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Models Offline</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #00ff00;
+      padding: 20px;
+    }
+    .section {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ff8c00;
+    }
+    .title {
+      color: #ff8c00;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .model {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #444;
+    }
+    .model-name {
+      color: #00ff00;
+      font-weight: bold;
+    }
+    .model-category {
+      color: #666;
+      font-size: 12px;
+    }
+    button {
+      background: #ff8c00;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      margin: 5px;
+      font-family: 'Courier New', monospace;
+    }
+    button:hover {
+      background: #ffa500;
+    }
+    .success {
+      color: #00ff00;
+    }
+    .error {
+      color: #ff0000;
+    }
+  </style>
+</head>
+<body>
+  <h1>ML Models Offline Test</h1>
+  <p>This page tests the hardcoded model fallback functionality.</p>
+
+  <div class="section">
+    <div class="title">TEST 1: List All Models</div>
+    <button onclick="testListModels()">Run Test</button>
+    <div id="list-result"></div>
+  </div>
+
+  <div class="section">
+    <div class="title">TEST 2: Filter by Category (time_series)</div>
+    <button onclick="testFilterByCategory()">Run Test</button>
+    <div id="category-result"></div>
+  </div>
+
+  <div class="section">
+    <div class="title">TEST 3: Get Model Details (tft)</div>
+    <button onclick="testGetDetails()">Run Test</button>
+    <div id="details-result"></div>
+  </div>
+
+  <div class="section">
+    <div class="title">TEST 4: Get Recommendations (price_forecasting)</div>
+    <button onclick="testRecommendations()">Run Test</button>
+    <div id="recommend-result"></div>
+  </div>
+
+  <div class="section">
+    <div class="title">TEST 5: Get Categories</div>
+    <button onclick="testCategories()">Run Test</button>
+    <div id="categories-result"></div>
+  </div>
+
+  <div class="section">
+    <div class="title">TEST 6: Get Use Cases</div>
+    <button onclick="testUseCases()">Run Test</button>
+    <div id="usecases-result"></div>
+  </div>
+
+  <script type="module">
+    import { 
+      listModels, 
+      getModelDetails, 
+      recommendModels,
+      getModelCategories,
+      getUseCases 
+    } from './src/services/modelsService.ts';
+
+    window.testListModels = async () => {
+      const result = document.getElementById('list-result');
+      try {
+        const models = await listModels();
+        result.innerHTML = `<div class="success">✓ Found ${models.length} models</div>`;
+        models.slice(0, 3).forEach(m => {
+          result.innerHTML += `
+            <div class="model">
+              <div class="model-name">${m.name}</div>
+              <div class="model-category">${m.category}</div>
+            </div>
+          `;
+        });
+      } catch (err) {
+        result.innerHTML = `<div class="error">✗ Error: ${err.message}</div>`;
+      }
+    };
+
+    window.testFilterByCategory = async () => {
+      const result = document.getElementById('category-result');
+      try {
+        const models = await listModels({ category: 'time_series' });
+        result.innerHTML = `<div class="success">✓ Found ${models.length} time-series models</div>`;
+        models.forEach(m => {
+          result.innerHTML += `
+            <div class="model">
+              <div class="model-name">${m.name}</div>
+            </div>
+          `;
+        });
+      } catch (err) {
+        result.innerHTML = `<div class="error">✗ Error: ${err.message}</div>`;
+      }
+    };
+
+    window.testGetDetails = async () => {
+      const result = document.getElementById('details-result');
+      try {
+        const model = await getModelDetails('tft');
+        result.innerHTML = `
+          <div class="success">✓ Model Details Retrieved</div>
+          <div class="model">
+            <div class="model-name">${model.name}</div>
+            <div>Category: ${model.category}</div>
+            <div>Production Ready: ${model.production_ready ? 'Yes' : 'No'}</div>
+            <div>GPU Required: ${model.gpu_required ? 'Yes' : 'No'}</div>
+            <div>Memory: ${model.memory_mb} MB</div>
+            <div>Strengths: ${model.strengths.length}</div>
+            <div>Weaknesses: ${model.weaknesses.length}</div>
+          </div>
+        `;
+      } catch (err) {
+        result.innerHTML = `<div class="error">✗ Error: ${err.message}</div>`;
+      }
+    };
+
+    window.testRecommendations = async () => {
+      const result = document.getElementById('recommend-result');
+      try {
+        const data = await recommendModels('price_forecasting');
+        result.innerHTML = `<div class="success">✓ Found ${data.count} recommendations for ${data.use_case}</div>`;
+        data.recommendations.forEach(m => {
+          result.innerHTML += `
+            <div class="model">
+              <div class="model-name">${m.name}</div>
+              <div>Latency: ${m.latency_class}</div>
+              <div>Data: ${m.data_requirements}</div>
+            </div>
+          `;
+        });
+      } catch (err) {
+        result.innerHTML = `<div class="error">✗ Error: ${err.message}</div>`;
+      }
+    };
+
+    window.testCategories = async () => {
+      const result = document.getElementById('categories-result');
+      try {
+        const categories = await getModelCategories();
+        result.innerHTML = `<div class="success">✓ Found ${categories.length} categories</div>`;
+        categories.forEach(c => {
+          result.innerHTML += `<div>${c.name}: ${c.count} models</div>`;
+        });
+      } catch (err) {
+        result.innerHTML = `<div class="error">✗ Error: ${err.message}</div>`;
+      }
+    };
+
+    window.testUseCases = async () => {
+      const result = document.getElementById('usecases-result');
+      try {
+        const useCases = await getUseCases();
+        result.innerHTML = `<div class="success">✓ Found ${useCases.length} use cases</div>`;
+        useCases.forEach(uc => {
+          result.innerHTML += `<div>${uc.name}: ${uc.count} models</div>`;
+        });
+      } catch (err) {
+        result.innerHTML = `<div class="error">✗ Error: ${err.message}</div>`;
+      }
+    };
+  </script>
+</body>
+</html>

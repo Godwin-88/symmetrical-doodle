@@ -1,0 +1,4 @@
+# file: C:\Users\ThinkPad\Documents\Afripay\Masters\intelligence-layer\src\intelligence_layer\state_assembly.py
+# hypothesis_version: 6.150.1
+
+[0.0, 0.01, 0.5, 0.7, 1.0, 30.0, '1h', 'assembly_timestamp', 'asset_id', 'centrality', 'cluster_id', 'current_embedding', 'current_regime', 'data_sources', 'drawdown', 'embedding', 'embedding_id', 'embedding_similarity', 'graph_features', 'gross_exposure', 'id', 'market_embeddings', 'max_drawdown', 'metadata', 'neo4j', 'net_exposure', 'passed', 'pgvector', 'portfolio_data', 'portfolio_state', 'realized_pnl', 'regime_confidence', 'regime_inference', 'regime_probabilities', 'regime_state', 'risk_metrics', 'rust_core', 'sharpe_ratio', 'similarity', 'similarity_context', 'strategy_count', 'strategy_embeddings', 'systemic_risk', 'timestamp', 'unrealized_pnl', 'validation_status', 'var_1d', 'var_5d', 'volatility', 'warnings']

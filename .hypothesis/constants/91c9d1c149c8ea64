@@ -1,0 +1,4 @@
+# file: C:\Users\ThinkPad\Documents\Afripay\Masters\intelligence-layer\src\intelligence_layer\regime_detection.py
+# hypothesis_version: 6.150.1
+
+[1e-10, 0.01, 0.02, 0.03, 0.1, 0.5, 0.8, 100, 'close', 'description', 'full', 'high', 'hl_spread', 'liquidity_state', 'log_returns', 'low', 'medium', 'normal', 'open', 'ranging', 'regime_id', 'returns', 'sma_20', 'stressed', 'timestamp', 'trend', 'trend_state', 'trending', 'volatility', 'volatility_level', 'volume', 'volume_ma', 'volume_ratio']

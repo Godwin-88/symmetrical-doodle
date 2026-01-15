@@ -1,0 +1,4 @@
+# file: C:\Users\ThinkPad\Documents\Afripay\Masters\intelligence-layer\src\intelligence_layer\main.py
+# hypothesis_version: 6.150.0
+
+[1e-07, 0.0001, 0.01, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.8, 0.85, 1.1, 100, 400, 500, 503, 1000, 9000, '*', ',', '/', '/health', '/intelligence/regime', '/intelligence/state', '0.1.0', 'Unhandled exception', '__main__', 'algorithms_executed', 'analysis_type', 'asset_correlations', 'centrality_score', 'completed', 'contagion_risk', 'crisis', 'data_points', 'degree_centrality', 'detail', 'healthy', 'high_vol_ranging', 'intelligence-api', 'low_vol_trending', 'regime_definitions', 'regime_transitions', 'running', 'service', 'status', 'systemic_risk_proxy', 'timestamp', 'trained', 'version']

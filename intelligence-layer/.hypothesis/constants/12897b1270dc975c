@@ -1,0 +1,4 @@
+# file: C:\Users\ThinkPad\Documents\Afripay\Masters\intelligence-layer\src\intelligence_layer\logging.py
+# hypothesis_version: 6.150.0
+
+[1000, '%(message)s', 'iso', 'json', 'request_completed', 'request_error']

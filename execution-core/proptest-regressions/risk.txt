@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc df8ab09bd194b0193197193744acb80b90ee9f6023ccb0c8908a266e714c9d13 # shrinks to position_size = 541.8994708740078, price = 97.75623304304655, asset_id = "AAA", drawdown_pct = 0.0

@@ -1,0 +1,4 @@
+# file: C:\Users\ThinkPad\Documents\Afripay\Masters\intelligence-layer\src\intelligence_layer\feature_extraction.py
+# hypothesis_version: 6.150.0
+
+[0.5, 1.4826, 100, 128, 252, 'asset_id', 'bb_position', 'close', 'config', 'data_points', 'extraction_timestamp', 'feature_names', 'features', 'high', 'hl_range', 'log_returns', 'low', 'macd_histogram_norm', 'oc_gap', 'open', 'returns', 'rsi_norm', 'timestamp', 'volume']
