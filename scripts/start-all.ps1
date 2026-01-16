@@ -59,14 +59,34 @@ Write-Header "ALGORITHMIC TRADING SYSTEM - STARTUP"
 
 # Step 1: Start Docker services
 Write-Header "STEP 1: Starting Database Services (Docker)"
-Write-Info "Starting PostgreSQL, Neo4j, and Redis..."
+
+# Check if using Neo4j Aura (cloud) or local Neo4j
+$usingNeo4jAura = $false
+if (Test-Path ".env") {
+    $envContent = Get-Content ".env" -Raw
+    if ($envContent -match "neo4j\+s://.*\.databases\.neo4j\.io") {
+        $usingNeo4jAura = $true
+        Write-Info "Detected Neo4j Aura (cloud database) configuration"
+    }
+}
+
+Write-Info "Starting PostgreSQL and Redis..."
+if ($usingNeo4jAura) {
+    Write-Info "Using Neo4j Aura (cloud) - skipping local Neo4j"
+} else {
+    Write-Info "Starting local Neo4j..."
+}
 
 try {
     docker-compose up -d
     Start-Sleep -Seconds 5
     Write-Success "Database services started"
     Write-Info "PostgreSQL: localhost:5432"
-    Write-Info "Neo4j: localhost:7474 (browser), localhost:7687 (bolt)"
+    if (-not $usingNeo4jAura) {
+        Write-Info "Neo4j: localhost:7474 (browser), localhost:7687 (bolt)"
+    } else {
+        Write-Info "Neo4j: Using Neo4j Aura (cloud)"
+    }
     Write-Info "Redis: localhost:6379"
 } catch {
     Write-Warning "Failed to start Docker services. Make sure Docker is running."
@@ -174,7 +194,11 @@ Write-ColorOutput Cyan "Intelligence API:      http://localhost:8000"
 Write-ColorOutput Cyan "Intelligence Docs:     http://localhost:8000/docs"
 Write-ColorOutput Cyan "Execution API:         http://localhost:8001"
 Write-ColorOutput Cyan "Simulation API:        http://localhost:8002"
-Write-ColorOutput Cyan "Neo4j Browser:         http://localhost:7474"
+if (-not $usingNeo4jAura) {
+    Write-ColorOutput Cyan "Neo4j Browser:         http://localhost:7474"
+} else {
+    Write-ColorOutput Cyan "Neo4j Aura Console:    https://console.neo4j.io/"
+}
 Write-Host ""
 
 # Display monitoring commands

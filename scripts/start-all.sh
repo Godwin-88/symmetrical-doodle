@@ -51,14 +51,33 @@ mkdir -p logs
 
 # Step 1: Start Docker services
 print_header "STEP 1: Starting Database Services (Docker)"
-print_info "Starting PostgreSQL, Neo4j, and Redis..."
+
+# Check if using Neo4j Aura (cloud) or local Neo4j
+USING_NEO4J_AURA=false
+if [ -f ".env" ]; then
+    if grep -q "neo4j+s://.*\.databases\.neo4j\.io" .env; then
+        USING_NEO4J_AURA=true
+        print_info "Detected Neo4j Aura (cloud database) configuration"
+    fi
+fi
+
+print_info "Starting PostgreSQL and Redis..."
+if [ "$USING_NEO4J_AURA" = true ]; then
+    print_info "Using Neo4j Aura (cloud) - skipping local Neo4j"
+else
+    print_info "Starting local Neo4j..."
+fi
 
 if command -v docker-compose &> /dev/null; then
     docker-compose up -d
     sleep 5
     print_success "Database services started"
     print_info "PostgreSQL: localhost:5432"
-    print_info "Neo4j: localhost:7474 (browser), localhost:7687 (bolt)"
+    if [ "$USING_NEO4J_AURA" = false ]; then
+        print_info "Neo4j: localhost:7474 (browser), localhost:7687 (bolt)"
+    else
+        print_info "Neo4j: Using Neo4j Aura (cloud)"
+    fi
     print_info "Redis: localhost:6379"
 else
     print_warning "Docker Compose not found. Please start database services manually."
