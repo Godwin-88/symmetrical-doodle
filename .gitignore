@@ -1,14 +1,145 @@
-# Rust build artifacts
+# =============================================================================
+# ALGORITHMIC TRADING SYSTEM - COMPREHENSIVE .GITIGNORE
+# =============================================================================
+
+# =============================================================================
+# SECURITY & SENSITIVE DATA (CRITICAL - NEVER COMMIT)
+# =============================================================================
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+.env.development
+.env.test
+.env.llm
+.env.deriv
+.env.neo4j
+.env.postgres
+.env.redis
+
+# API Keys and credentials
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+keys/
+certs/
+ssl/
+
+# Trading account information
+accounts.json
+trading_accounts.json
+broker_credentials.json
+api_credentials.json
+
+# Database connection strings with passwords
+database_urls.txt
+connection_strings.txt
+
+# =============================================================================
+# TRADING DATA & FINANCIAL INFORMATION
+# =============================================================================
+
+# Market data files
+market_data/
+historical_data/
+tick_data/
+ohlc_data/
+*.csv
+*.parquet
+*.h5
+*.hdf5
+
+# Trading logs and execution data
+trading_logs/
+execution_logs/
+order_logs/
+trade_history/
+portfolio_snapshots/
+risk_reports/
+
+# Backtest results and analysis
+backtest_results/
+simulation_results/
+performance_reports/
+strategy_analysis/
+
+# Research and proprietary analysis
+research_reports/
+proprietary_analysis/
+alpha_research/
+signal_analysis/
+
+# =============================================================================
+# AI/ML MODELS & DATA
+# =============================================================================
+
+# Trained models
+models/
+*.pkl
+*.joblib
+*.h5
+*.pb
+*.onnx
+*.pt
+*.pth
+*.safetensors
+checkpoints/
+model_artifacts/
+
+# Training data and datasets
+datasets/
+training_data/
+validation_data/
+test_data/
+embeddings/
+vectors/
+
+# ML experiment tracking
+mlruns/
+experiments/
+wandb/
+tensorboard_logs/
+.neptune/
+
+# Vector databases and embeddings
+chroma_db/
+faiss_index/
+pinecone_cache/
+vector_store/
+
+# =============================================================================
+# RUST BUILD ARTIFACTS
+# =============================================================================
+
+# Rust build outputs
 target/
-Cargo.lock
 **/*.rs.bk
 *.pdb
 
-# Python
+# Cargo files (keep Cargo.toml, ignore Cargo.lock for libraries)
+# Cargo.lock  # Uncomment if this is a library, keep for applications
+
+# Rust-specific temporary files
+*.orig
+*.rej
+
+# =============================================================================
+# PYTHON ARTIFACTS
+# =============================================================================
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -22,57 +153,389 @@ parts/
 sdist/
 var/
 wheels/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
+
+# Virtual environments
 venv/
 .venv/
 ENV/
 env/
+.env/
+pipenv/
+poetry.lock
+
+# Testing and coverage
 .pytest_cache/
 .hypothesis/
-*.cover
 .coverage
+.coverage.*
 htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.cache
+nosetests.xml
 
-# Node.js / Frontend
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# =============================================================================
+# NODE.JS / FRONTEND ARTIFACTS
+# =============================================================================
+
+# Dependencies
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+jspm_packages/
+
+# Build outputs
 dist/
 dist-ssr/
-*.local
+build/
+out/
+.next/
+.nuxt/
+.vuepress/dist
+.serverless/
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
 
-# Logs
-logs/
-*.log
+# nyc test coverage
+.nyc_output
 
-# Database
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Vite
+.vite/
+
+# Rollup
+.rollup.cache/
+
+# SvelteKit build / generate output
+.svelte-kit
+
+# =============================================================================
+# DATABASE FILES
+# =============================================================================
+
+# SQLite databases
 *.db
 *.sqlite
 *.sqlite3
+*.db-journal
 
-# OS
-Thumbs.db
+# PostgreSQL
+*.dump
+*.sql.gz
+
+# Neo4j
+neo4j_data/
+neo4j_logs/
+neo4j_import/
+
+# Redis
+dump.rdb
+appendonly.aof
+
+# Database backups
+*.backup
+*.bak
+database_backups/
+
+# =============================================================================
+# DOCKER & CONTAINERIZATION
+# =============================================================================
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+docker-compose.local.yml
+.docker/
+
+# Kubernetes
+*.kubeconfig
+k8s-secrets/
+
+# =============================================================================
+# LOGS & MONITORING
+# =============================================================================
+
+# Application logs
+logs/
+*.log
+*.log.*
+log/
+
+# System logs
+syslog
+kern.log
+auth.log
+
+# Performance monitoring
+*.prof
+*.trace
+flamegraph.svg
+
+# Metrics and monitoring data
+metrics/
+monitoring_data/
+prometheus_data/
+grafana_data/
+
+# =============================================================================
+# TESTING & DEVELOPMENT
+# =============================================================================
+
+# Test outputs
+test_results/
+test_reports/
+junit.xml
+test-results.xml
+
+# Property-based testing
+.hypothesis/
+
+# Benchmark results
+benchmark_results/
+*.bench
+
+# Development databases
+dev.db
+test.db
+local.db
+
+# =============================================================================
+# IDE & EDITOR FILES
+# =============================================================================
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim
+*.swp
+*.swo
+*~
+.vim/
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Atom
+.atom/
+
+# =============================================================================
+# OPERATING SYSTEM FILES
+# =============================================================================
+
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# TEMPORARY & CACHE FILES
+# =============================================================================
 
 # Temporary files
 tmp/
 temp/
 *.tmp
+*.temp
+*.cache
+
+# Cache directories
+.cache/
+cache/
+.parcel-cache/
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# =============================================================================
+# DOCUMENTATION BUILD ARTIFACTS
+# =============================================================================
+
+# Sphinx documentation
+docs/_build/
+docs/build/
+
+# MkDocs
+site/
+
+# GitBook
+_book/
+
+# =============================================================================
+# DEPLOYMENT & INFRASTRUCTURE
+# =============================================================================
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+terraform.tfvars.json
+
+# Ansible
+*.retry
+.vault_pass
+
+# Deployment scripts with secrets
+deploy_prod.sh
+deploy_staging.sh
+
+# =============================================================================
+# CUSTOM PROJECT EXCLUSIONS
+# =============================================================================
+
+# User-specific configuration
+user_config.json
+personal_settings.json
+
+# Local development overrides
+local_overrides/
+dev_overrides/
+
+# Generated documentation
+api_docs/
+generated_docs/
+
+# Compiled assets
+compiled_assets/
+optimized_assets/
+
+# =============================================================================
+# KEEP THESE PATTERNS AT THE END
+# =============================================================================
+
+# But include these important files (override above patterns)
+!.env.example
+!.env.*.example
+!docker-compose.yml
+!Dockerfile
+!README.md
+!LICENSE
+!CONTRIBUTING.md
+!.github/
+!docs/
+!scripts/
+!Makefile

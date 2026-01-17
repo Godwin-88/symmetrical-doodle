@@ -1,17 +1,19 @@
 import { useEffect } from 'react';
-import { useTradingStore } from '@/app/store/tradingStore';
-import { FunctionKeyBar } from '@/app/components/FunctionKeyBar';
-import { StatusBar } from '@/app/components/StatusBar';
-import { Dashboard } from '@/app/components/Dashboard';
-import { Intelligence } from '@/app/components/Intelligence';
-import { Markets } from '@/app/components/Markets';
-import { Strategies } from '@/app/components/Strategies';
-import { Portfolio } from '@/app/components/Portfolio';
-import { Execution } from '@/app/components/Execution';
-import { Simulation } from '@/app/components/Simulation';
-import { DataModels } from '@/app/components/DataModels';
-import { System } from '@/app/components/System';
-import { DataWorkspace } from '@/app/components/DataWorkspace';
+import { useTradingStore } from './store/tradingStore';
+import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import QuickActionModals from './components/QuickActionModals';
+import { Dashboard } from './components/Dashboard';
+import { Intelligence } from './components/Intelligence';
+import { IntelligenceNew } from './components/IntelligenceNew';
+import { Markets } from './components/Markets';
+import { Strategies } from './components/Strategies';
+import { Portfolio } from './components/Portfolio';
+import { Execution } from './components/Execution';
+import { Simulation } from './components/Simulation';
+import { MLOps } from './components/MLOps';
+import { System } from './components/System';
+import { DataWorkspace } from './components/DataWorkspace';
 
 export default function App() {
   const { currentDomain, setCurrentDomain, checkHealth } = useTradingStore();
@@ -23,17 +25,17 @@ export default function App() {
     return () => clearInterval(interval);
   }, [checkHealth]);
 
-  // Keyboard shortcuts for function keys
+  // Updated keyboard shortcuts for new navigation order (Option 1C)
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key >= 'F1' && e.key <= 'F9') {
+      if (e.key >= 'F1' && e.key <= 'F10') {
         e.preventDefault();
-        const domains = ['DASH', 'MKTS', 'INTL', 'STRT', 'PORT', 'EXEC', 'SIMU', 'DATA', 'SYST'];
-        const index = parseInt(e.key[1]) - 1;
-        setCurrentDomain(domains[index] as any);
-      } else if (e.key === 'F10') {
-        e.preventDefault();
-        setCurrentDomain('WORK' as any);
+        // New Option 1C sequence: DASH, WORK, MLOPS, MKTS, INTL, STRT, SIMU, PORT, EXEC, SYST
+        const domains = ['DASH', 'WORK', 'MLOPS', 'MKTS', 'INTL', 'STRT', 'SIMU', 'PORT', 'EXEC', 'SYST'];
+        const index = parseInt(e.key.slice(1)) - 1;
+        if (domains[index]) {
+          setCurrentDomain(domains[index] as any);
+        }
       }
     };
 
@@ -45,36 +47,47 @@ export default function App() {
     switch (currentDomain) {
       case 'DASH':
         return <Dashboard />;
+      case 'WORK':
+        return <DataWorkspace />;
+      case 'MLOPS':
+        return <MLOps />;
       case 'MKTS':
         return <Markets />;
       case 'INTL':
-        return <Intelligence />;
+        return <IntelligenceNew />;
       case 'STRT':
         return <Strategies />;
+      case 'SIMU':
+        return <Simulation />;
       case 'PORT':
         return <Portfolio />;
       case 'EXEC':
         return <Execution />;
-      case 'SIMU':
-        return <Simulation />;
-      case 'DATA':
-        return <DataModels />;
       case 'SYST':
         return <System />;
-      case 'WORK':
-        return <DataWorkspace />;
       default:
         return <Dashboard />;
     }
   };
 
   return (
-    <div className="h-screen w-full flex flex-col bg-black text-white overflow-hidden">
-      <FunctionKeyBar />
-      <div className="flex-1 overflow-hidden">
-        {renderDomain()}
+    <div className="h-screen w-full flex flex-col bg-black text-white overflow-hidden font-mono">
+      {/* Top Navbar */}
+      <Navbar />
+      
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Sidebar */}
+        <Sidebar />
+        
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
+          {renderDomain()}
+        </main>
       </div>
-      <StatusBar />
+
+      {/* Quick Action Modals */}
+      <QuickActionModals />
     </div>
   );
 }

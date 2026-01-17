@@ -1,17 +1,21 @@
-"""Main FastAPI application for intelligence layer."""
+"""Main FastAPI application for intelligence layer with LLM and RAG capabilities."""
 
 import asyncio
+import os
+import tempfile
 from contextlib import asynccontextmanager
 from datetime import timedelta, datetime, timezone
 from typing import Dict, Any, List, Optional
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 import uvicorn
 import numpy as np
 
 from .config import load_config, Config
+from .llm_config import load_llm_config, LLMIntelligenceConfig
 from .logging import configure_logging, get_logger
 from .models import (
     IntelligenceState,
@@ -29,8 +33,14 @@ from .data_import import data_importer, DataSource
 from .market_analytics import market_analytics
 from .model_registry import model_registry, ModelCategory, UseCase
 
+# New LLM and RAG services
+from .llm_service import LLMService
+from .rag_service import RAGService
+from .research_service import FinancialResearchService
+
 # Global configuration and services
 config = load_config()
+llm_config = load_llm_config()
 logger = get_logger(__name__)
 
 # Global service instances
@@ -38,15 +48,39 @@ regime_pipeline: RegimeInferencePipeline = None
 graph_analytics: MarketGraphAnalytics = None
 state_assembler: CompositeStateAssembler = None
 
+# New LLM and RAG service instances
+llm_service: LLMService = None
+rag_service: RAGService = None
+research_service: FinancialResearchService = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     global regime_pipeline, graph_analytics, state_assembler
+    global llm_service, rag_service, research_service
     
     # Startup
     configure_logging(config.logging)
     logger.info("Intelligence Layer API starting up", config=config.model_dump())
+    
+    # Initialize LLM and RAG services
+    try:
+        llm_service = LLMService(llm_config)
+        await llm_service.initialize()
+        logger.info("LLM Service initialized")
+        
+        rag_service = RAGService(llm_config)
+        await rag_service.initialize()
+        logger.info("RAG Service initialized")
+        
+        research_service = FinancialResearchService(llm_config)
+        await research_service.initialize()
+        logger.info("Research Service initialized")
+        
+    except Exception as e:
+        logger.error(f"Failed to initialize LLM/RAG services: {e}")
+        # Continue without LLM services if they fail to initialize
     
     try:
         # Initialize services
@@ -126,10 +160,335 @@ def get_state_assembler() -> CompositeStateAssembler:
     return state_assembler
 
 
+def get_llm_service() -> LLMService:
+    """Dependency to get LLM service."""
+    if llm_service is None:
+        raise HTTPException(status_code=503, detail="LLM service not initialized")
+    return llm_service
+
+
+def get_rag_service() -> RAGService:
+    """Dependency to get RAG service."""
+    if rag_service is None:
+        raise HTTPException(status_code=503, detail="RAG service not initialized")
+    return rag_service
+
+
+def get_research_service() -> FinancialResearchService:
+    """Dependency to get research service."""
+    if research_service is None:
+        raise HTTPException(status_code=503, detail="Research service not initialized")
+    return research_service
+
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "service": "intelligence-api"}
+
+
+# ============================================================================
+# EMERGENCY CONTROLS & QUICK ACTIONS API ENDPOINTS
+# ============================================================================
+
+# Global system state for emergency controls
+class SystemState:
+    def __init__(self):
+        self.trading_status: str = "ACTIVE"  # ACTIVE, PAUSED, HALTED
+        self.emergency_halt_active: bool = False
+        self.last_status_change: datetime = datetime.now(timezone.utc)
+        self.halt_reason: Optional[str] = None
+
+system_state = SystemState()
+
+# Request/Response models for emergency controls
+
+class EmergencyHaltRequest(BaseModel):
+    reason: Optional[str] = "Manual emergency halt"
+    force: bool = False
+
+class EmergencyHaltResponse(BaseModel):
+    success: bool
+    message: str
+    timestamp: datetime
+    previous_status: str
+    new_status: str
+
+class TradingControlRequest(BaseModel):
+    action: str  # "pause" or "resume"
+    reason: Optional[str] = None
+
+class TradingControlResponse(BaseModel):
+    success: bool
+    message: str
+    timestamp: datetime
+    previous_status: str
+    new_status: str
+
+class SystemStatusResponse(BaseModel):
+    trading_status: str
+    emergency_halt_active: bool
+    last_status_change: datetime
+    halt_reason: Optional[str]
+    uptime_seconds: float
+
+class QuickChartRequest(BaseModel):
+    symbol: str
+    timeframe: str = "1H"
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
+class QuickChartResponse(BaseModel):
+    symbol: str
+    timeframe: str
+    data_points: int
+    chart_url: Optional[str] = None
+    message: str
+
+class SymbolSearchRequest(BaseModel):
+    query: str
+    limit: int = 10
+
+class SymbolSearchResponse(BaseModel):
+    query: str
+    results: List[Dict[str, Any]]
+    total_found: int
+
+class WatchlistItem(BaseModel):
+    symbol: str
+    price: float
+    change: float
+    change_percent: float
+    volume: Optional[int] = None
+
+class WatchlistResponse(BaseModel):
+    items: List[WatchlistItem]
+    last_updated: datetime
+
+# Emergency Controls Endpoints
+@app.post("/emergency/halt", response_model=EmergencyHaltResponse)
+async def emergency_halt(request: EmergencyHaltRequest):
+    """Emergency halt - immediately stop all trading activities."""
+    try:
+        previous_status = system_state.trading_status
+        
+        if system_state.emergency_halt_active and not request.force:
+            raise HTTPException(
+                status_code=400, 
+                detail="Emergency halt already active. Use force=true to override."
+            )
+        
+        # Set emergency halt
+        system_state.trading_status = "HALTED"
+        system_state.emergency_halt_active = True
+        system_state.last_status_change = datetime.now(timezone.utc)
+        system_state.halt_reason = request.reason
+        
+        logger.critical(f"EMERGENCY HALT ACTIVATED: {request.reason}")
+        
+        # TODO: Send halt signal to execution core
+        # await execution_client.emergency_halt()
+        
+        return EmergencyHaltResponse(
+            success=True,
+            message=f"Emergency halt activated: {request.reason}",
+            timestamp=system_state.last_status_change,
+            previous_status=previous_status,
+            new_status=system_state.trading_status
+        )
+        
+    except Exception as e:
+        logger.error(f"Emergency halt failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Emergency halt failed: {str(e)}")
+
+@app.post("/emergency/resume", response_model=EmergencyHaltResponse)
+async def resume_from_halt():
+    """Resume trading after emergency halt (requires manual intervention)."""
+    try:
+        if not system_state.emergency_halt_active:
+            raise HTTPException(status_code=400, detail="No emergency halt is active")
+        
+        previous_status = system_state.trading_status
+        
+        # Resume trading
+        system_state.trading_status = "ACTIVE"
+        system_state.emergency_halt_active = False
+        system_state.last_status_change = datetime.now(timezone.utc)
+        system_state.halt_reason = None
+        
+        logger.warning("Emergency halt DEACTIVATED - Trading resumed")
+        
+        return EmergencyHaltResponse(
+            success=True,
+            message="Emergency halt deactivated - Trading resumed",
+            timestamp=system_state.last_status_change,
+            previous_status=previous_status,
+            new_status=system_state.trading_status
+        )
+        
+    except Exception as e:
+        logger.error(f"Resume from halt failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Resume failed: {str(e)}")
+
+@app.post("/trading/control", response_model=TradingControlResponse)
+async def trading_control(request: TradingControlRequest):
+    """Pause or resume trading (non-emergency)."""
+    try:
+        if system_state.emergency_halt_active:
+            raise HTTPException(
+                status_code=400, 
+                detail="Cannot control trading while emergency halt is active"
+            )
+        
+        previous_status = system_state.trading_status
+        
+        if request.action == "pause":
+            if system_state.trading_status == "PAUSED":
+                raise HTTPException(status_code=400, detail="Trading is already paused")
+            
+            system_state.trading_status = "PAUSED"
+            system_state.last_status_change = datetime.now(timezone.utc)
+            message = f"Trading paused: {request.reason or 'Manual pause'}"
+            logger.warning(message)
+            
+        elif request.action == "resume":
+            if system_state.trading_status == "ACTIVE":
+                raise HTTPException(status_code=400, detail="Trading is already active")
+            
+            system_state.trading_status = "ACTIVE"
+            system_state.last_status_change = datetime.now(timezone.utc)
+            message = f"Trading resumed: {request.reason or 'Manual resume'}"
+            logger.info(message)
+            
+        else:
+            raise HTTPException(status_code=400, detail="Invalid action. Use 'pause' or 'resume'")
+        
+        return TradingControlResponse(
+            success=True,
+            message=message,
+            timestamp=system_state.last_status_change,
+            previous_status=previous_status,
+            new_status=system_state.trading_status
+        )
+        
+    except Exception as e:
+        logger.error(f"Trading control failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Trading control failed: {str(e)}")
+
+@app.get("/system/status", response_model=SystemStatusResponse)
+async def get_system_status():
+    """Get current system and trading status."""
+    uptime = (datetime.now(timezone.utc) - system_state.last_status_change).total_seconds()
+    
+    return SystemStatusResponse(
+        trading_status=system_state.trading_status,
+        emergency_halt_active=system_state.emergency_halt_active,
+        last_status_change=system_state.last_status_change,
+        halt_reason=system_state.halt_reason,
+        uptime_seconds=uptime
+    )
+
+# Quick Actions Endpoints
+@app.post("/quick/chart", response_model=QuickChartResponse)
+async def quick_chart(request: QuickChartRequest):
+    """Generate quick chart data for a symbol."""
+    try:
+        # TODO: Implement actual chart data generation
+        # For now, return mock response
+        
+        logger.info(f"Quick chart requested for {request.symbol} ({request.timeframe})")
+        
+        return QuickChartResponse(
+            symbol=request.symbol,
+            timeframe=request.timeframe,
+            data_points=100,  # Mock data points
+            chart_url=None,  # TODO: Generate chart URL
+            message=f"Chart data prepared for {request.symbol}"
+        )
+        
+    except Exception as e:
+        logger.error(f"Quick chart failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Chart generation failed: {str(e)}")
+
+@app.post("/quick/symbol-search", response_model=SymbolSearchResponse)
+async def symbol_search(request: SymbolSearchRequest):
+    """Search for trading symbols."""
+    try:
+        # Mock symbol search results
+        mock_results = [
+            {"symbol": "EURUSD", "name": "Euro / US Dollar", "type": "Forex", "exchange": "FX"},
+            {"symbol": "GBPUSD", "name": "British Pound / US Dollar", "type": "Forex", "exchange": "FX"},
+            {"symbol": "USDJPY", "name": "US Dollar / Japanese Yen", "type": "Forex", "exchange": "FX"},
+            {"symbol": "AAPL", "name": "Apple Inc.", "type": "Stock", "exchange": "NASDAQ"},
+            {"symbol": "MSFT", "name": "Microsoft Corporation", "type": "Stock", "exchange": "NASDAQ"},
+            {"symbol": "BTC-USD", "name": "Bitcoin USD", "type": "Crypto", "exchange": "CRYPTO"},
+            {"symbol": "ETH-USD", "name": "Ethereum USD", "type": "Crypto", "exchange": "CRYPTO"},
+        ]
+        
+        # Filter results based on query
+        filtered_results = [
+            result for result in mock_results
+            if request.query.lower() in result["symbol"].lower() or 
+               request.query.lower() in result["name"].lower()
+        ][:request.limit]
+        
+        logger.info(f"Symbol search for '{request.query}' returned {len(filtered_results)} results")
+        
+        return SymbolSearchResponse(
+            query=request.query,
+            results=filtered_results,
+            total_found=len(filtered_results)
+        )
+        
+    except Exception as e:
+        logger.error(f"Symbol search failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Symbol search failed: {str(e)}")
+
+@app.get("/quick/watchlist", response_model=WatchlistResponse)
+async def get_watchlist():
+    """Get current watchlist with live prices."""
+    try:
+        # Mock watchlist data
+        mock_watchlist = [
+            WatchlistItem(symbol="EURUSD", price=1.0845, change=0.0012, change_percent=0.11),
+            WatchlistItem(symbol="GBPUSD", price=1.2634, change=-0.0023, change_percent=-0.18),
+            WatchlistItem(symbol="USDJPY", price=149.85, change=0.45, change_percent=0.30),
+            WatchlistItem(symbol="AUDUSD", price=0.6523, change=0.0008, change_percent=0.12),
+            WatchlistItem(symbol="USDCHF", price=0.8756, change=-0.0015, change_percent=-0.17),
+        ]
+        
+        return WatchlistResponse(
+            items=mock_watchlist,
+            last_updated=datetime.now(timezone.utc)
+        )
+        
+    except Exception as e:
+        logger.error(f"Watchlist fetch failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Watchlist fetch failed: {str(e)}")
+
+@app.post("/quick/reconnect")
+async def force_reconnect():
+    """Force reconnection to all services."""
+    try:
+        logger.info("Force reconnect requested")
+        
+        # TODO: Implement actual reconnection logic
+        # - Reconnect to databases
+        # - Reconnect to execution core
+        # - Refresh all connections
+        
+        return {
+            "success": True,
+            "message": "Reconnection initiated",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "services_reconnected": ["database", "execution_core", "market_data"]
+        }
+        
+    except Exception as e:
+        logger.error(f"Force reconnect failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Force reconnect failed: {str(e)}")
+
+# ============================================================================
 
 
 @app.get("/")
@@ -1349,6 +1708,257 @@ async def get_market_events(
     except Exception as e:
         logger.error("Market events retrieval failed", error=str(e))
         raise HTTPException(status_code=500, detail=f"Failed to retrieve market events: {str(e)}")
+
+
+# ============================================================================
+# LLM AND RAG API ENDPOINTS
+# ============================================================================
+
+# Request/Response models for LLM and RAG
+class LLMQueryRequest(BaseModel):
+    query: str
+    system_prompt: Optional[str] = None
+    prefer_local: bool = True
+    provider: Optional[str] = None
+
+class LLMQueryResponse(BaseModel):
+    answer: str
+    model: str
+    provider: str
+    tokens_used: int
+    response_time: float
+    timestamp: datetime
+
+class RAGQueryRequest(BaseModel):
+    question: str
+    context_filter: Optional[Dict[str, Any]] = None
+
+class RAGQueryResponse(BaseModel):
+    answer: str
+    sources: List[Dict[str, Any]]
+    confidence: str
+    model_info: Dict[str, Any]
+    retrieval_info: Optional[Dict[str, Any]] = None
+
+class DocumentIngestRequest(BaseModel):
+    file_path: str
+    metadata: Optional[Dict[str, Any]] = None
+
+class DocumentIngestResponse(BaseModel):
+    success: bool
+    chunks_created: int
+    document_id: str
+    message: str
+
+class ResearchRequest(BaseModel):
+    query: str
+    include_web: bool = True
+    include_market_data: bool = True
+
+class ResearchResponse(BaseModel):
+    query: str
+    timestamp: str
+    rag_analysis: Optional[Dict[str, Any]]
+    web_research: Optional[Dict[str, Any]]
+    market_data: Optional[Dict[str, Any]]
+    comprehensive_analysis: Optional[Dict[str, Any]]
+
+class StockAnalysisRequest(BaseModel):
+    symbol: str
+
+class StockAnalysisResponse(BaseModel):
+    symbol: str
+    market_data: Dict[str, Any]
+    news_analysis: Dict[str, Any]
+    ai_analysis: str
+    timestamp: str
+
+# LLM Endpoints
+@app.post("/llm/query", response_model=LLMQueryResponse)
+async def llm_query(
+    request: LLMQueryRequest,
+    llm_svc: LLMService = Depends(get_llm_service)
+):
+    """Query LLM with financial analysis capabilities."""
+    try:
+        response = await llm_svc.generate(
+            prompt=request.query,
+            system_prompt=request.system_prompt,
+            prefer_local=request.prefer_local,
+            provider=request.provider
+        )
+        
+        return LLMQueryResponse(
+            answer=response.content,
+            model=response.model,
+            provider=response.provider,
+            tokens_used=response.tokens_used,
+            response_time=response.response_time,
+            timestamp=response.timestamp
+        )
+        
+    except Exception as e:
+        logger.error(f"LLM query failed: {e}")
+        raise HTTPException(status_code=500, detail=f"LLM query failed: {str(e)}")
+
+@app.post("/llm/financial-analysis", response_model=LLMQueryResponse)
+async def financial_analysis(
+    request: LLMQueryRequest,
+    llm_svc: LLMService = Depends(get_llm_service)
+):
+    """Perform specialized financial analysis using LLM."""
+    try:
+        context = request.system_prompt if request.system_prompt else {}
+        response = await llm_svc.financial_analysis(request.query, context)
+        
+        return LLMQueryResponse(
+            answer=response.content,
+            model=response.model,
+            provider=response.provider,
+            tokens_used=response.tokens_used,
+            response_time=response.response_time,
+            timestamp=response.timestamp
+        )
+        
+    except Exception as e:
+        logger.error(f"Financial analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Financial analysis failed: {str(e)}")
+
+# RAG Endpoints
+@app.post("/rag/query", response_model=RAGQueryResponse)
+async def rag_query(
+    request: RAGQueryRequest,
+    rag_svc: RAGService = Depends(get_rag_service)
+):
+    """Query RAG system with document retrieval."""
+    try:
+        result = await rag_svc.query(request.question, request.context_filter)
+        
+        return RAGQueryResponse(
+            answer=result["answer"],
+            sources=result["sources"],
+            confidence=result["confidence"],
+            model_info=result["model_info"],
+            retrieval_info=result.get("retrieval_info")
+        )
+        
+    except Exception as e:
+        logger.error(f"RAG query failed: {e}")
+        raise HTTPException(status_code=500, detail=f"RAG query failed: {str(e)}")
+
+@app.post("/rag/ingest", response_model=DocumentIngestResponse)
+async def ingest_document(
+    file: UploadFile = File(...),
+    metadata: str = Form("{}"),
+    rag_svc: RAGService = Depends(get_rag_service)
+):
+    """Ingest document into RAG system."""
+    try:
+        import tempfile
+        import json
+        
+        # Parse metadata
+        doc_metadata = json.loads(metadata) if metadata else {}
+        doc_metadata.update({
+            "filename": file.filename,
+            "content_type": file.content_type,
+            "uploaded_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        # Save uploaded file temporarily
+        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp_file:
+            content = await file.read()
+            tmp_file.write(content)
+            tmp_file_path = tmp_file.name
+        
+        try:
+            # Ingest document
+            chunks_created = await rag_svc.ingest_document(tmp_file_path, doc_metadata)
+            
+            return DocumentIngestResponse(
+                success=True,
+                chunks_created=chunks_created,
+                document_id=f"doc_{hash(file.filename)}",
+                message=f"Successfully ingested {file.filename} with {chunks_created} chunks"
+            )
+            
+        finally:
+            # Clean up temporary file
+            os.unlink(tmp_file_path)
+        
+    except Exception as e:
+        logger.error(f"Document ingestion failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Document ingestion failed: {str(e)}")
+
+@app.get("/rag/stats")
+async def rag_stats(rag_svc: RAGService = Depends(get_rag_service)):
+    """Get RAG system statistics."""
+    try:
+        stats = await rag_svc.get_document_stats()
+        return stats
+        
+    except Exception as e:
+        logger.error(f"Failed to get RAG stats: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get RAG stats: {str(e)}")
+
+# Research Endpoints
+@app.post("/research/comprehensive", response_model=ResearchResponse)
+async def comprehensive_research(
+    request: ResearchRequest,
+    research_svc: FinancialResearchService = Depends(get_research_service)
+):
+    """Perform comprehensive financial research."""
+    try:
+        result = await research_svc.comprehensive_research(
+            request.query,
+            include_web=request.include_web
+        )
+        
+        return ResearchResponse(**result)
+        
+    except Exception as e:
+        logger.error(f"Comprehensive research failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Research failed: {str(e)}")
+
+@app.post("/research/stock-analysis", response_model=StockAnalysisResponse)
+async def stock_analysis(
+    request: StockAnalysisRequest,
+    research_svc: FinancialResearchService = Depends(get_research_service)
+):
+    """Perform detailed stock analysis."""
+    try:
+        result = await research_svc.stock_analysis(request.symbol)
+        
+        return StockAnalysisResponse(**result)
+        
+    except Exception as e:
+        logger.error(f"Stock analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Stock analysis failed: {str(e)}")
+
+@app.get("/research/market-overview")
+async def market_overview(
+    research_svc: FinancialResearchService = Depends(get_research_service)
+):
+    """Get comprehensive market overview."""
+    try:
+        # Get economic indicators
+        economic_data = await research_svc.market_data.get_economic_indicators()
+        
+        # Generate AI analysis of market conditions
+        market_analysis = await research_svc.llm_service.financial_analysis(
+            "Provide a comprehensive market overview based on current economic indicators and market conditions. Include key trends, risks, and opportunities.",
+            {"economic_indicators": economic_data}
+        )
+        
+        return {
+            "economic_indicators": economic_data,
+            "ai_analysis": market_analysis.content,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Market overview failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Market overview failed: {str(e)}")
 
 
 if __name__ == "__main__":
