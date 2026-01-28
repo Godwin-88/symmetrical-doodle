@@ -1,0 +1,214 @@
+version: '3.8'
+
+services:
+  nautilus-integration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: nautilus-integration
+    restart: unless-stopped
+    
+    # Environment configuration
+    environment:
+      - NAUTILUS_INTEGRATION_ENV=${NAUTILUS_INTEGRATION_ENV:-production}
+      - NAUTILUS_DATABASE__POSTGRES_URL=${NAUTILUS_DATABASE__POSTGRES_URL:-postgresql://postgres:password@postgres:5432/trading_system}
+      - NAUTILUS_DATABASE__NEO4J_URL=${NAUTILUS_DATABASE__NEO4J_URL:-bolt://neo4j:7687}
+      - NAUTILUS_DATABASE__NEO4J_USER=${NAUTILUS_DATABASE__NEO4J_USER:-neo4j}
+      - NAUTILUS_DATABASE__NEO4J_PASSWORD=${NAUTILUS_DATABASE__NEO4J_PASSWORD:-password}
+      - NAUTILUS_DATABASE__REDIS_URL=${NAUTILUS_DATABASE__REDIS_URL:-redis://redis:6379}
+      - NAUTILUS_API_HOST=${NAUTILUS_API_HOST:-0.0.0.0}
+      - NAUTILUS_API_PORT=${NAUTILUS_API_PORT:-8002}
+      - NAUTILUS_LOGGING__LEVEL=${NAUTILUS_LOGGING__LEVEL:-INFO}
+      - NAUTILUS_DEBUG=${NAUTILUS_DEBUG:-false}
+      - PYTHONPATH=/app/nautilus-integration/src
+    
+    # Port mapping
+    ports:
+      - "${NAUTILUS_API_PORT:-8002}:8002"
+    
+    # Volume mounts
+    volumes:
+      # Data catalog storage (persistent)
+      - ${NAUTILUS_DATA_CATALOG_PATH:-./data/catalog}:/app/data/catalog
+      # Configuration override (optional)
+      - ${NAUTILUS_CONFIG_PATH:-./config}:/app/config:ro
+      # Logs directory
+      - ${NAUTILUS_LOGS_PATH:-./data/logs}:/app/data/logs
+      # Development mode: mount source code (comment out for production)
+      - ./src:/app/nautilus-integration/src:ro
+    
+    # Network configuration
+    networks:
+      - nautilus-integration-network
+      - trading-network  # Connect to main trading system network
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    # Dependencies
+    depends_on:
+      postgres:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # PostgreSQL with pgvector extension (shared with main system)
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: nautilus-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-trading_system}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - nautilus-integration-network
+      - trading-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - with-database
+
+  # Neo4j with Graph Data Science (shared with main system)
+  neo4j:
+    image: neo4j:5.14-enterprise
+    container_name: nautilus-neo4j
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-password}
+      NEO4J_PLUGINS: '["graph-data-science"]'
+      NEO4J_dbms_security_procedures_unrestricted: gds.*
+      NEO4J_dbms_security_procedures_allowlist: gds.*
+      NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
+    ports:
+      - "${NEO4J_HTTP_PORT:-7474}:7474"  # HTTP
+      - "${NEO4J_BOLT_PORT:-7687}:7687"  # Bolt
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+      - neo4j-import:/var/lib/neo4j/import
+      - neo4j-plugins:/plugins
+    networks:
+      - nautilus-integration-network
+      - trading-network
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "${NEO4J_USER:-neo4j}", "-p", "${NEO4J_PASSWORD:-password}", "RETURN 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - with-database
+
+  # Redis for caching and message queuing (shared with main system)
+  redis:
+    image: redis:7-alpine
+    container_name: nautilus-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - nautilus-integration-network
+      - trading-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - with-cache
+
+  # Optional: Monitoring and observability
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: nautilus-prometheus
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - nautilus-integration-network
+    profiles:
+      - with-monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: nautilus-grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - nautilus-integration-network
+    depends_on:
+      - prometheus
+    profiles:
+      - with-monitoring
+
+networks:
+  nautilus-integration-network:
+    driver: bridge
+    name: nautilus-integration-network
+  trading-network:
+    external: true
+    name: trading-network
+
+volumes:
+  postgres-data:
+    driver: local
+  neo4j-data:
+    driver: local
+  neo4j-logs:
+    driver: local
+  neo4j-import:
+    driver: local
+  neo4j-plugins:
+    driver: local
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
