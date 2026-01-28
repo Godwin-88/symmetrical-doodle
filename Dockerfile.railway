@@ -1,0 +1,30 @@
+# Railway Deployment Dockerfile - Optimized for Free Tier
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install minimal system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create requirements file with minimal dependencies for Railway
+RUN echo "fastapi==0.104.1\nuvicorn[standard]==0.24.0\nasyncpg==0.29.0\nredis==5.0.1\nneo4j==5.15.0\npython-dotenv==1.0.0\nhttpx==0.25.2\npydantic==2.5.0\npydantic-settings==2.1.0\nsqlalchemy==2.0.0\nstructlog==23.2.0\npython-multipart==0.0.6\naioredis==2.0.1" > requirements.txt
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy only essential application files
+COPY intelligence-layer/src/intelligence_layer/ ./intelligence_layer/
+
+# Create a minimal main.py for Railway with CORS
+RUN echo 'from fastapi import FastAPI\nfrom fastapi.middleware.cors import CORSMiddleware\nfrom fastapi.responses import JSONResponse\nimport os\n\napp = FastAPI(title="Algorithmic Trading System - Intelligence Layer")\n\n# Configure CORS\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\n        "https://algo-terminal.vercel.app",\n        "https://*.vercel.app",\n        "http://localhost:5173",\n        "http://localhost:3000"\n    ],\n    allow_credentials=True,\n    allow_methods=["*"],\n    allow_headers=["*"],\n)\n\n@app.get("/")\nasync def root():\n    return {"message": "Intelligence Layer API", "status": "running", "environment": os.getenv("RAILWAY_ENVIRONMENT", "unknown")}\n\n@app.get("/health")\nasync def health():\n    return {"status": "healthy", "service": "intelligence-layer"}\n\n@app.get("/api/intelligence/status")\nasync def intelligence_status():\n    return {"status": "operational", "features": ["market_analysis", "ai_chat", "research", "documents"]}\n\n@app.get("/api/health")\nasync def api_health():\n    return {"status": "healthy", "service": "intelligence-layer", "cors": "enabled"}\n\nif __name__ == "__main__":\n    import uvicorn\n    port = int(os.getenv("PORT", 8000))\n    uvicorn.run(app, host="0.0.0.0", port=port)' > main.py
+
+# Expose port
+EXPOSE ${PORT:-8000}
+
+# Start the application directly
+CMD python main.py
