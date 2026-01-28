@@ -518,7 +518,7 @@ dev_overrides/
 # Generated documentation
 api_docs/
 generated_docs/
-
+extracted_pdfs/
 # Compiled assets
 compiled_assets/
 optimized_assets/
@@ -539,3 +539,4 @@ optimized_assets/
 !docs/
 !scripts/
 !Makefile
+
