@@ -1,0 +1,317 @@
+{
+  "analysis_metadata": {
+    "analysis_id": "coverage_20260125_180019",
+    "generated_at": "2026-01-25T18:00:19.021357+00:00",
+    "correlation_id": "test_coverage_001"
+  },
+  "input_summary": {
+    "total_documents_analyzed": 100,
+    "total_domains_found": 6,
+    "analysis_scope_count": 16
+  },
+  "coverage_scores": {
+    "overall_coverage_score": 0.876,
+    "coverage_completeness": 93.75,
+    "coverage_depth_score": 0.876,
+    "coverage_quality_score": 0.75,
+    "research_readiness_level": "comprehensive",
+    "estimated_research_capability": 0.876
+  },
+  "domain_coverage": [
+    {
+      "domain": "Machine Learning Foundations",
+      "document_count": 25,
+      "coverage_level": "comprehensive",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [],
+      "strength_areas": [
+        "Supervised Learning",
+        "Unsupervised Learning",
+        "Feature Engineering"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Deep Reinforcement Learning",
+      "document_count": 15,
+      "coverage_level": "comprehensive",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [],
+      "strength_areas": [
+        "Q-Learning",
+        "Policy Gradients",
+        "Actor-Critic Methods"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Natural Language Processing",
+      "document_count": 18,
+      "coverage_level": "comprehensive",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [],
+      "strength_areas": [
+        "Text Processing",
+        "Sentiment Analysis",
+        "Named Entity Recognition"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Large Language Models",
+      "document_count": 8,
+      "coverage_level": "comprehensive",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [
+        "Prompt Engineering",
+        "In-Context Learning",
+        "Reasoning"
+      ],
+      "strength_areas": [
+        "Transformer Architecture",
+        "Pre-training",
+        "Fine-tuning"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Quantitative Finance",
+      "document_count": 30,
+      "coverage_level": "adequate",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [],
+      "strength_areas": [
+        "Asset Pricing Models",
+        "Risk Models",
+        "Portfolio Theory"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Algorithmic Trading",
+      "document_count": 45,
+      "coverage_level": "adequate",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [],
+      "strength_areas": [
+        "Trading Strategies",
+        "Execution Algorithms",
+        "Market Making"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Risk Management",
+      "document_count": 30,
+      "coverage_level": "comprehensive",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [],
+      "strength_areas": [
+        "General Topics"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Portfolio Optimization",
+      "document_count": 30,
+      "coverage_level": "comprehensive",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [],
+      "strength_areas": [
+        "General Topics"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Time Series Analysis",
+      "document_count": 12,
+      "coverage_level": "comprehensive",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [],
+      "strength_areas": [
+        "General Topics"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Statistical Modeling",
+      "document_count": 37,
+      "coverage_level": "comprehensive",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [],
+      "strength_areas": [
+        "General Topics"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Optimization Methods",
+      "document_count": 40,
+      "coverage_level": "comprehensive",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [],
+      "strength_areas": [
+        "General Topics"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Graph Analytics",
+      "document_count": 12,
+      "coverage_level": "comprehensive",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [],
+      "strength_areas": [
+        "General Topics"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Market Microstructure",
+      "document_count": 30,
+      "coverage_level": "comprehensive",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [],
+      "strength_areas": [
+        "General Topics"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Behavioral Finance",
+      "document_count": 30,
+      "coverage_level": "comprehensive",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [],
+      "strength_areas": [
+        "General Topics"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Alternative Data",
+      "document_count": 18,
+      "coverage_level": "comprehensive",
+      "coverage_score": 0.914,
+      "quality_score": 0.75,
+      "priority_level": "low",
+      "missing_subtopics": [],
+      "weak_areas": [],
+      "strength_areas": [
+        "General Topics"
+      ],
+      "recommended_additions": []
+    },
+    {
+      "domain": "Regulatory Compliance",
+      "document_count": 0,
+      "coverage_level": "insufficient",
+      "coverage_score": 0.314,
+      "quality_score": 0.75,
+      "priority_level": "medium",
+      "missing_subtopics": [
+        "General Topics",
+        "Advanced Methods",
+        "Applications"
+      ],
+      "weak_areas": [],
+      "strength_areas": [],
+      "recommended_additions": [
+        "Increase document count from 0 to 2",
+        "Focus on core concepts in Regulatory Compliance"
+      ]
+    }
+  ],
+  "gap_analysis": {
+    "total_gaps_identified": 1,
+    "critical_gaps_count": 0,
+    "well_covered_domains": [
+      "Machine Learning Foundations",
+      "Deep Reinforcement Learning",
+      "Natural Language Processing",
+      "Large Language Models",
+      "Quantitative Finance",
+      "Algorithmic Trading",
+      "Risk Management",
+      "Portfolio Optimization",
+      "Time Series Analysis",
+      "Statistical Modeling",
+      "Optimization Methods",
+      "Graph Analytics",
+      "Market Microstructure",
+      "Behavioral Finance",
+      "Alternative Data"
+    ],
+    "partially_covered_domains": [],
+    "missing_domains": [
+      "Regulatory Compliance"
+    ],
+    "critical_gaps": []
+  },
+  "recommendations": {
+    "priority_recommendations": [],
+    "improvement_roadmap": [
+      {
+        "phase": "Phase 1: Foundation Building",
+        "timeline": "1-2 months",
+        "focus": "Address missing core domains",
+        "domains": [
+          "Regulatory Compliance"
+        ],
+        "target_documents": 30
+      },
+      {
+        "phase": "Phase 3: Specialization",
+        "timeline": "3-4 months",
+        "focus": "Add specialized and advanced topics",
+        "domains": [
+          "Machine Learning Foundations",
+          "Deep Reinforcement Learning"
+        ],
+        "target_documents": 15
+      }
+    ]
+  }
+}

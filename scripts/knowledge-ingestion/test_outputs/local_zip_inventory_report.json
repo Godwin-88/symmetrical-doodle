@@ -1,0 +1,163 @@
+{
+  "report_metadata": {
+    "report_id": "inventory_20260125_171107",
+    "generated_at": "2026-01-25T17:11:07.770996+00:00",
+    "correlation_id": "test"
+  },
+  "discovery_summary": {
+    "total_pdfs_found": 24,
+    "total_files_scanned": 24,
+    "folders_scanned": [
+      "Taleb"
+    ]
+  },
+  "domain_analysis": {
+    "domain_distribution": {
+      "General Technical": 10,
+      "Machine Learning": 7,
+      "Finance & Trading": 6,
+      "Natural Language Processing": 1
+    },
+    "domain_stats": [
+      {
+        "category": "General Technical",
+        "count": 10,
+        "percentage": 41.67,
+        "total_size_mb": 216.12,
+        "avg_size_mb": 21.61,
+        "sample_files": [
+          "understanding-deep-learning-chitta-ranjan-2021b.pdf",
+          "Options Futures and Other Derivatives by John C Hull.PDF",
+          "BartoSutton.pdf"
+        ]
+      },
+      {
+        "category": "Machine Learning",
+        "count": 7,
+        "percentage": 29.17,
+        "total_size_mb": 106.43,
+        "avg_size_mb": 15.2,
+        "sample_files": [
+          "Copy of Graph Neural Networks.pdf",
+          "Copy of Graph Machine Learning.pdf",
+          "Taleb_Statistical_Consequences_of_Fat_Tails.pdf"
+        ]
+      },
+      {
+        "category": "Finance & Trading",
+        "count": 6,
+        "percentage": 25.0,
+        "total_size_mb": 46.31,
+        "avg_size_mb": 7.72,
+        "sample_files": [
+          "Dynamic_Hedging-Taleb.pdf",
+          "(Wiley Finance) Jim Gatheral, Nassim Nicholas Taleb - The Volatility Surface_ A Practitioner_s Guide (Wiley Finance)-Wiley (2006)(Z-Lib.io) (1).pdf",
+          "5 Fooled by Randomness - Nassim Taleb.pdf"
+        ]
+      },
+      {
+        "category": "Natural Language Processing",
+        "count": 1,
+        "percentage": 4.17,
+        "total_size_mb": 58.65,
+        "avg_size_mb": 58.65,
+        "sample_files": [
+          "Robert S. Sutor - Dancing with Python_ Learn Python software development from scratch and get started with quantum computing-Packt Publishing - ebooks Account (2021)(Z-Lib.io).pdf"
+        ]
+      }
+    ]
+  },
+  "accessibility_analysis": {
+    "accessibility_rate": 0.0,
+    "accessible_count": 0,
+    "restricted_count": 0,
+    "not_found_count": 0,
+    "error_count": 24,
+    "total_count": 24,
+    "inaccessible_files": []
+  },
+  "size_analysis": {
+    "total_size_mb": 427.5,
+    "avg_file_size_mb": 17.81,
+    "largest_files": [
+      {
+        "name": "Robert S. Sutor - Dancing with Python_ Learn Python software development from scratch and get started with quantum computing-Packt Publishing - ebooks Account (2021)(Z-Lib.io).pdf",
+        "file_id": "752d7aedd3c6a8b8",
+        "size_mb": 58.65
+      },
+      {
+        "name": "Taleb_Statistical_Consequences_of_Fat_Tails.pdf",
+        "file_id": "5b67cc5c7bba426a",
+        "size_mb": 53.66
+      },
+      {
+        "name": "d2l-en.pdf",
+        "file_id": "86571aaa27817901",
+        "size_mb": 42.62
+      },
+      {
+        "name": "Options Futures and Other Derivatives by John C Hull.PDF",
+        "file_id": "6dccc42ece3dfe0a",
+        "size_mb": 42.57
+      },
+      {
+        "name": "BartoSutton.pdf",
+        "file_id": "67eccc45c00472b9",
+        "size_mb": 41.61
+      },
+      {
+        "name": "Copy of Graph Algo 4 DS.pdf",
+        "file_id": "70cf178ea7788365",
+        "size_mb": 35.74
+      },
+      {
+        "name": "Dynamic_Hedging-Taleb.pdf",
+        "file_id": "c5a51b52ceb06959",
+        "size_mb": 21.13
+      },
+      {
+        "name": "Dancing with Qubits_ From qubits to algorithms, embark on the quantum computing journey shaping, 2nd (Z-lib.io).pdf",
+        "file_id": "218776475f3b992f",
+        "size_mb": 18.19
+      },
+      {
+        "name": "Copy of Graph Neural Networks.pdf",
+        "file_id": "b4f464bb3971724f",
+        "size_mb": 16.22
+      },
+      {
+        "name": "Copy of Graph Machine Learning.pdf",
+        "file_id": "3c58d6976c9be4b1",
+        "size_mb": 14.13
+      }
+    ]
+  },
+  "metadata_analysis": {
+    "files_with_metadata": 24,
+    "files_with_domain_classification": 24,
+    "metadata_completeness_rate": 100.0
+  },
+  "processing_recommendations": {
+    "estimated_processing_time_hours": 3.56,
+    "recommended_batch_size": 10,
+    "potential_issues": [
+      "Low accessibility rate (0.0%) - 24 files may not be processable"
+    ]
+  },
+  "folder_analysis": [
+    {
+      "folder_id": "Taleb",
+      "folder_name": null,
+      "pdf_count": 24,
+      "total_size_mb": 427.5,
+      "domain_distribution": {
+        "General Technical": 10,
+        "Machine Learning": 7,
+        "Finance & Trading": 6,
+        "Natural Language Processing": 1
+      },
+      "accessibility_rate": 0.0,
+      "last_modified": "2026-01-25T06:11:40+00:00"
+    }
+  ]
+}

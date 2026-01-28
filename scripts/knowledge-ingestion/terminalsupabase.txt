@@ -1,0 +1,10 @@
+password :E&ArUd3fmDXfRW?
+
+session pooler connection string : psql -h aws-1-eu-central-1.pooler.supabase.com -p 5432 -d postgres -U postgres.kajjmtzpdfybslxcidws
+
+server url : https://mcp.supabase.com/mcp?project_ref=kajjmtzpdfybslxcidws
+
+project URL : https://kajjmtzpdfybslxcidws.supabase.co
+publishable key : sb_publishable_FJxJS6LQIwWDwrzVoS5uyQ_EBYhiC6H
+Anon Key : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthamptdHpwZGZ5YnNseGNpZHdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0OTcxNDgsImV4cCI6MjA4NDA3MzE0OH0.-UrakefNsExRrNQjFOLj9obhW72jmro-pzlaU_-AnqE
+Direct connection string : postgresql://postgres:[YOUR-PASSWORD]@db.kajjmtzpdfybslxcidws.supabase.co:5432/postgres

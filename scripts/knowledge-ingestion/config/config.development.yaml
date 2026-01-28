@@ -1,0 +1,39 @@
+google_drive:
+  scopes:
+    - "https://www.googleapis.com/auth/drive.readonly"
+  folder_ids: []
+
+supabase:
+  max_connections: 5
+  timeout: 30
+
+embeddings:
+  openai_model: "text-embedding-3-large"
+  huggingface_model_financial: "BAAI/bge-large-en-v1.5"
+  huggingface_model_mathematical: "sentence-transformers/all-mpnet-base-v2"
+  batch_size: 16  # Smaller batch size for development
+  max_tokens: 8192
+  use_gpu: false  # Disable GPU for development
+
+processing:
+  use_marker_llm: false
+  marker_timeout: 180  # Shorter timeout for development
+  pymupdf_fallback: true
+  chunk_size: 500  # Smaller chunks for faster testing
+  chunk_overlap: 100
+  preserve_math: true
+  max_file_size_mb: 50  # Smaller file size limit for development
+
+logging:
+  level: "DEBUG"  # More verbose logging for development
+  format: "console"  # Human-readable format for development
+  correlation_id_header: "X-Correlation-ID"
+  max_file_size_mb: 50
+  backup_count: 3
+
+# Development-specific settings
+development:
+  sample_mode: true  # Process only a subset of files
+  max_files_per_run: 10  # Limit files processed in development
+  skip_large_files: true  # Skip files larger than max_file_size_mb
+  mock_embeddings: false  # Set to true to use mock embeddings for testing

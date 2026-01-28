@@ -1,0 +1,41 @@
+google_drive:
+  scopes:
+    - "https://www.googleapis.com/auth/drive.readonly"
+  folder_ids: []
+
+supabase:
+  max_connections: 20  # Higher connection pool for production
+  timeout: 60  # Longer timeout for production stability
+
+embeddings:
+  openai_model: "text-embedding-3-large"
+  huggingface_model_financial: "BAAI/bge-large-en-v1.5"
+  huggingface_model_mathematical: "sentence-transformers/all-mpnet-base-v2"
+  batch_size: 64  # Larger batch size for production efficiency
+  max_tokens: 8192
+  use_gpu: true  # Enable GPU acceleration in production
+
+processing:
+  use_marker_llm: true  # Use LLM-enhanced parsing in production
+  marker_timeout: 600  # Longer timeout for complex documents
+  pymupdf_fallback: true
+  chunk_size: 1000
+  chunk_overlap: 200
+  preserve_math: true
+  max_file_size_mb: 200  # Allow larger files in production
+
+logging:
+  level: "INFO"
+  format: "json"  # Structured logging for production
+  correlation_id_header: "X-Correlation-ID"
+  max_file_size_mb: 200
+  backup_count: 10
+
+# Production-specific settings
+production:
+  retry_attempts: 3  # Retry failed operations
+  retry_delay: 5  # Seconds between retries
+  circuit_breaker_threshold: 10  # Failures before circuit breaker opens
+  rate_limit_requests_per_minute: 100  # API rate limiting
+  enable_metrics: true  # Enable performance metrics collection
+  enable_health_checks: true  # Enable health check endpoints

@@ -1,0 +1,32 @@
+google_drive:
+  scopes:
+    - "https://www.googleapis.com/auth/drive.readonly"
+  folder_ids: []
+
+supabase:
+  max_connections: 10
+  timeout: 30
+
+embeddings:
+  openai_model: "text-embedding-3-large"
+  huggingface_model_financial: "BAAI/bge-large-en-v1.5"
+  huggingface_model_mathematical: "sentence-transformers/all-mpnet-base-v2"
+  batch_size: 32
+  max_tokens: 8192
+  use_gpu: true
+
+processing:
+  use_marker_llm: false
+  marker_timeout: 300
+  pymupdf_fallback: true
+  chunk_size: 1000
+  chunk_overlap: 200
+  preserve_math: true
+  max_file_size_mb: 100
+
+logging:
+  level: "INFO"
+  format: "json"
+  correlation_id_header: "X-Correlation-ID"
+  max_file_size_mb: 100
+  backup_count: 5

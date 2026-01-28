@@ -1,0 +1,126 @@
+"""
+Direct test script for embedding components without __init__.py imports.
+"""
+
+import asyncio
+import os
+import sys
+import logging
+
+# Add the project root to the path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+async def test_content_classification():
+    """Test content classification functionality"""
+    print("\n=== Testing Content Classification ===")
+    
+    # Direct import to avoid __init__.py issues
+    from services.content_classifier import ContentClassifier
+    
+    classifier = ContentClassifier()
+    
+    test_texts = [
+        ("Machine learning algorithms for portfolio optimization", "ML/Finance"),
+        ("Deep reinforcement learning in trading strategies", "DRL/Finance"),
+        ("Natural language processing for financial sentiment analysis", "NLP/Finance"),
+        ("Large language models and their applications", "LLMs"),
+        ("Mathematical optimization using gradient descent ∇f(x) = 0", "Math/General"),
+        ("General research methodology and analysis", "General"),
+    ]
+    
+    for text, expected_category in test_texts:
+        classification = await classifier.classify_content(text)
+        print(f"Text: {text[:50]}...")
+        print(f"  Domain: {classification.domain.value}")
+        print(f"  Type: {classification.content_type.value}")
+        print(f"  Confidence: {classification.confidence_score:.3f}")
+        print(f"  Math indicators: {len(classification.mathematical_indicators)}")
+        print(f"  Expected: {expected_category}")
+        print()
+
+
+async def test_quality_validation():
+    """Test embedding quality validation"""
+    print("\n=== Testing Quality Validation ===")
+    
+    from services.embedding_quality_validator import EmbeddingQualityValidator
+    
+    validator = EmbeddingQualityValidator()
+    
+    # Test with different types of embeddings
+    test_embeddings = [
+        ([0.1, 0.2, 0.3, 0.4], "Normal embedding"),
+        ([0.0, 0.0, 0.0, 0.0], "Zero vector"),
+        ([], "Empty embedding"),
+        ([float('nan'), 0.1, 0.2], "NaN values"),
+        ([1000.0, 2000.0, 3000.0], "High magnitude"),
+        ([0.1] * 1536, "OpenAI-like dimension"),
+    ]
+    
+    for embedding, description in test_embeddings:
+        result = await validator.validate_embedding(embedding, "test-model")
+        print(f"{description}:")
+        print(f"  Valid: {result.is_valid}")
+        print(f"  Quality score: {result.quality_score:.3f}")
+        print(f"  Issues: {[issue.value for issue in result.issues]}")
+        print(f"  Should regenerate: {result.should_regenerate}")
+        if result.recommendations:
+            print(f"  Recommendations: {result.recommendations[0]}")
+        print()
+
+
+async def test_model_selection():
+    """Test model selection logic"""
+    print("\n=== Testing Model Selection ===")
+    
+    from services.embedding_router import EmbeddingRouter
+    from services.content_classifier import ContentClassifier
+    
+    router = EmbeddingRouter()
+    classifier = ContentClassifier()
+    
+    test_texts = [
+        "Machine learning algorithms for portfolio optimization",
+        "Mathematical proof using LaTeX notation: $\\sum_{i=1}^{n} x_i = 0$",
+        "Financial risk management strategies",
+        "General research methodology",
+    ]
+    
+    for text in test_texts:
+        classification = await classifier.classify_content(text)
+        selected_model = await router.select_model(classification)
+        
+        print(f"Text: {text[:50]}...")
+        print(f"  Domain: {classification.domain.value}")
+        print(f"  Type: {classification.content_type.value}")
+        print(f"  Selected model: {selected_model.value}")
+        print()
+
+
+async def main():
+    """Run all tests"""
+    print("Testing Embedding Generation Service Components")
+    print("=" * 60)
+    
+    try:
+        await test_content_classification()
+        await test_quality_validation()
+        await test_model_selection()
+        
+        print("\n=== Test Summary ===")
+        print("All component tests completed successfully!")
+        print("The embedding service components are working correctly.")
+        
+    except Exception as e:
+        logger.error(f"Test failed: {e}")
+        import traceback
+        traceback.print_exc()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

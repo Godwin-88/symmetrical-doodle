@@ -1,0 +1,48 @@
+{
+  "audit_metadata": {
+    "audit_id": "audit_20260125_171109",
+    "generated_at": "2026-01-25T17:11:09.204432+00:00",
+    "correlation_id": "test"
+  },
+  "sampling_summary": {
+    "total_documents_available": 3,
+    "total_samples_collected": 3,
+    "sampling_coverage_rate": 100.0
+  },
+  "domain_sampling_stats": [
+    {
+      "domain": "General Technical",
+      "total_documents": 3,
+      "actual_sample_size": 3,
+      "sampling_rate": 1.0,
+      "avg_completeness_score": 0.6,
+      "avg_preservation_score": 0.0,
+      "technical_notation_coverage": 0.0
+    }
+  ],
+  "technical_notation_assessment": {
+    "mathematical_formulas_found": 0,
+    "mathematical_formulas_preserved": 0,
+    "formula_preservation_rate": 0.0,
+    "overall_preservation_score": 1.0
+  },
+  "embedding_quality": null,
+  "overall_quality": {
+    "completeness_score": 0.6,
+    "preservation_score": 1.0,
+    "quality_level": "good"
+  },
+  "recommendations": {
+    "quality_recommendations": [
+      "Improve content extraction to capture more complete document structure"
+    ],
+    "improvement_suggestions": [
+      "Review PDF parsing settings to preserve section headers and formatting",
+      "Ensure technical documents are properly identified and sampled"
+    ],
+    "critical_issues": [],
+    "warnings": [
+      "Low technical notation coverage: 0.0%"
+    ]
+  }
+}

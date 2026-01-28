@@ -1,0 +1,39 @@
+============================================================
+KNOWLEDGE BASE INVENTORY REPORT
+============================================================
+Report ID: inventory_20260125_171107
+Generated: 2026-01-25 17:11:07 UTC
+
+DISCOVERY SUMMARY
+--------------------
+Total PDFs Found: 24
+Total Files Scanned: 24
+Folders Scanned: 1
+Total Size: 427.5 MB
+Average File Size: 17.8 MB
+
+ACCESSIBILITY ANALYSIS
+--------------------
+Accessibility Rate: 0.0%
+Accessible Files: 0
+Restricted Files: 0
+Not Found Files: 0
+Error Files: 24
+
+DOMAIN DISTRIBUTION
+--------------------
+General Technical: 10 files (41.7%)
+Machine Learning: 7 files (29.2%)
+Finance & Trading: 6 files (25.0%)
+Natural Language Processing: 1 files (4.2%)
+
+POTENTIAL ISSUES
+--------------------
+• Low accessibility rate (0.0%) - 24 files may not be processable
+
+PROCESSING RECOMMENDATIONS
+--------------------
+Estimated Processing Time: 3.6 hours
+Recommended Batch Size: 10
+
+============================================================

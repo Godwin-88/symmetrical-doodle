@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  knowledge-ingestion:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: knowledge-ingestion
+    restart: unless-stopped
+    
+    # Environment configuration
+    environment:
+      - KNOWLEDGE_INGESTION_ENV=${KNOWLEDGE_INGESTION_ENV:-production}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - HUGGINGFACE_API_TOKEN=${HUGGINGFACE_API_TOKEN}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONPATH=/app/scripts/knowledge-ingestion
+    
+    # Volume mounts
+    volumes:
+      # Credentials directory (required)
+      - ${CREDENTIALS_PATH:-./credentials}:/app/data/credentials:ro
+      # Configuration override (optional)
+      - ${CONFIG_PATH:-./config}:/app/scripts/knowledge-ingestion/config:ro
+      # Extracted PDFs storage (optional, for caching)
+      - ${EXTRACTED_PDFS_PATH:-./data/extracted_pdfs}:/app/data/extracted_pdfs
+      # Logs directory
+      - ${LOGS_PATH:-./data/logs}:/app/data/logs
+    
+    # Network configuration
+    networks:
+      - knowledge-ingestion-network
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Redis for caching (if needed for large deployments)
+  redis:
+    image: redis:7-alpine
+    container_name: knowledge-ingestion-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - knowledge-ingestion-network
+    profiles:
+      - with-cache
+
+networks:
+  knowledge-ingestion-network:
+    driver: bridge
+    name: knowledge-ingestion-network
+
+volumes:
+  redis-data:
+    driver: local
