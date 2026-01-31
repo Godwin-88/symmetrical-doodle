@@ -523,6 +523,12 @@ extracted_pdfs/
 compiled_assets/
 optimized_assets/
 
+# Large files that should not be tracked by git
+*.zip
+*.pdf
+Taleb-20260125T161042Z-3-001.zip
+scripts/knowledge-ingestion/extracted_pdfs/
+
 # =============================================================================
 # KEEP THESE PATTERNS AT THE END
 # =============================================================================
