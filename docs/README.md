@@ -29,8 +29,10 @@ This documentation is organized in a logical sequence to guide you from initial 
 - **[Deployment Scripts](./04-deployment/scripts.md)** - Automated deployment and management
 - **[Environment Configuration](./04-deployment/environment-config.md)** - Environment variables and settings
 - **[Production Deployment](./04-deployment/production-deployment.md)** - Production setup guide
+- **[NautilusTrader Deployment](./04-deployment/nautilus-deployment.md)** - Complete Nautilus integration deployment
 
 ### [05. Integrations](./05-integrations/)
+- **[NautilusTrader](./05-integrations/nautilus-trader.md)** - Professional trading platform integration
 - **[Deriv API](./05-integrations/deriv-api.md)** - Live trading integration
 - **[Neo4j Aura](./05-integrations/neo4j-aura.md)** - Cloud graph database
 - **[External APIs](./05-integrations/external-apis.md)** - Third-party integrations
@@ -40,9 +42,11 @@ This documentation is organized in a logical sequence to guide you from initial 
 - **[Backend Development](./06-development/backend.md)** - Rust/Python development
 - **[API Reference](./06-development/api-reference.md)** - Complete API documentation
 - **[Testing Guide](./06-development/testing.md)** - Testing strategies and tools
+- **[NautilusTrader Testing](./06-development/nautilus-testing-guide.md)** - Comprehensive Nautilus integration testing
 
 ### [07. Troubleshooting](./07-troubleshooting/)
 - **[Common Issues](./07-troubleshooting/common-issues.md)** - Frequently encountered problems
+- **[NautilusTrader Issues](./07-troubleshooting/nautilus-integration.md)** - Nautilus-specific troubleshooting
 - **[Database Issues](./07-troubleshooting/database-issues.md)** - Database-specific troubleshooting
 
 ## 🚀 Quick Navigation
@@ -77,6 +81,7 @@ This documentation is organized in a logical sequence to guide you from initial 
 - **Mock Fallback System**: Full UI functionality even when backend services are offline
 
 **🔄 IN PROGRESS:**
+- NautilusTrader integration with F8 portfolio and risk management
 - Backend service integration and API endpoints
 - Database schema optimization
 - Real-time WebSocket connections
@@ -89,6 +94,7 @@ This documentation is organized in a logical sequence to guide you from initial 
 - **Documentation**: Complete user and developer guides
 
 **🆕 LATEST UPDATES (January 2025):**
+- **NautilusTrader Integration**: Complete professional trading platform integration with comprehensive documentation
 - **Intelligence Module Rewritten**: Complete CRUD functionality with AI chat, research reports, document management, and analysis models
 - **Enhanced Testing**: Comprehensive user testing guide created
 - **Documentation Updates**: All docs updated with current status
