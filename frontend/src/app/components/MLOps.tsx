@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   listModels,
   getModelDetails,
@@ -29,17 +29,32 @@ import {
   type DeployedModel,
   type DeploymentConfig,
   type ValidationMetrics,
-  type ModelAlert
+  type ModelAlert,
+  // MLflow types and functions
+  type MLflowExperiment,
+  type MLflowRun,
+  type MLflowRegisteredModel,
+  type MLflowModelVersion,
+  type MLflowRunComparison,
+  type MLflowServingEndpoint,
+  getMLflowStatus,
+  listMLflowExperiments,
+  listMLflowRuns,
+  listMLflowModels,
+  compareMLflowRuns,
+  transitionMLflowModelStage,
+  listMLflowServingEndpoints,
+  deployMLflowModel,
 } from '../../services/mlopsService';
-import { 
-  Play, 
-  Pause, 
-  Square, 
-  Upload, 
-  Download, 
-  Settings, 
-  AlertTriangle, 
-  CheckCircle, 
+import {
+  Play,
+  Pause,
+  Square,
+  Upload,
+  Download,
+  Settings,
+  AlertTriangle,
+  CheckCircle,
   XCircle,
   Plus,
   Trash2,
@@ -53,8 +68,20 @@ import {
   TrendingUp,
   Clock,
   Target,
-  Zap
+  Zap,
+  ChevronLeft,
+  ChevronRight,
+  FlaskConical,
+  GitBranch,
+  Layers,
+  Server,
+  Activity,
+  FileCode,
+  Box,
 } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
+
+type SubcategoryType = 'experiments' | 'runs' | 'models' | 'serving' | null;
 
 export function MLOps() {
   const [activeTab, setActiveTab] = useState<'registry' | 'training' | 'deployment' | 'monitoring'>('registry');
@@ -68,6 +95,20 @@ export function MLOps() {
   const [deployedModels, setDeployedModels] = useState<DeployedModel[]>([]);
   const [validationMetrics, setValidationMetrics] = useState<ValidationMetrics | null>(null);
   const [modelAlerts, setModelAlerts] = useState<ModelAlert[]>([]);
+
+  // Collapsible subcategory panel state
+  const [isSubcategoryPanelOpen, setIsSubcategoryPanelOpen] = useState(true);
+  const [activeSubcategory, setActiveSubcategory] = useState<SubcategoryType>(null);
+
+  // MLflow state
+  const [mlflowStatus, setMlflowStatus] = useState<{ status: string; tracking_uri?: string } | null>(null);
+  const [mlflowExperiments, setMlflowExperiments] = useState<MLflowExperiment[]>([]);
+  const [selectedExperiment, setSelectedExperiment] = useState<MLflowExperiment | null>(null);
+  const [mlflowRuns, setMlflowRuns] = useState<MLflowRun[]>([]);
+  const [selectedRuns, setSelectedRuns] = useState<string[]>([]);
+  const [runComparison, setRunComparison] = useState<MLflowRunComparison | null>(null);
+  const [mlflowModels, setMlflowModels] = useState<MLflowRegisteredModel[]>([]);
+  const [servingEndpoints, setServingEndpoints] = useState<MLflowServingEndpoint[]>([]);
   
   // Modal states
   const [showNewDatasetModal, setShowNewDatasetModal] = useState(false);
@@ -107,6 +148,7 @@ export function MLOps() {
   useEffect(() => {
     loadModels();
     loadMLOpsData();
+    loadMLflowData();
   }, []);
 
   const loadMLOpsData = async () => {
@@ -140,6 +182,73 @@ export function MLOps() {
       setIsLoading(false);
     }
   };
+
+  const loadMLflowData = async () => {
+    try {
+      const [status, experiments, mlModels, endpoints] = await Promise.all([
+        getMLflowStatus(),
+        listMLflowExperiments(),
+        listMLflowModels(),
+        listMLflowServingEndpoints(),
+      ]);
+
+      setMlflowStatus(status);
+      setMlflowExperiments(experiments);
+      setMlflowModels(mlModels);
+      setServingEndpoints(endpoints.endpoints || []);
+    } catch (error) {
+      console.error('Failed to load MLflow data:', error);
+    }
+  };
+
+  const loadExperimentRuns = async (experimentName: string) => {
+    try {
+      const runs = await listMLflowRuns(experimentName);
+      setMlflowRuns(runs);
+    } catch (error) {
+      console.error('Failed to load experiment runs:', error);
+    }
+  };
+
+  const handleCompareRuns = async () => {
+    if (selectedRuns.length < 2) return;
+    try {
+      const comparison = await compareMLflowRuns(selectedRuns);
+      setRunComparison(comparison);
+    } catch (error) {
+      console.error('Failed to compare runs:', error);
+    }
+  };
+
+  const handleTransitionStage = async (modelName: string, version: string, stage: 'None' | 'Staging' | 'Production' | 'Archived') => {
+    try {
+      await transitionMLflowModelStage(modelName, version, stage);
+      await loadMLflowData();
+    } catch (error) {
+      console.error('Failed to transition model stage:', error);
+    }
+  };
+
+  const toggleRunSelection = (runId: string) => {
+    setSelectedRuns(prev =>
+      prev.includes(runId)
+        ? prev.filter(id => id !== runId)
+        : [...prev, runId]
+    );
+  };
+
+  // Prepare chart data for run comparison
+  const comparisonChartData = useMemo(() => {
+    if (!runComparison) return [];
+    const metricKeys = Object.keys(runComparison.metrics);
+    return metricKeys.map(metric => {
+      const dataPoint: Record<string, any> = { metric };
+      runComparison.runs.forEach(run => {
+        dataPoint[run.run_name || run.run_id] = runComparison.metrics[metric][run.run_id];
+      });
+      return dataPoint;
+    });
+  }, [runComparison]);
 
   const handleModelSelect = async (modelId: string) => {
     try {
@@ -353,33 +462,249 @@ export function MLOps() {
         ))}
       </div>
 
-      {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto">
-        {activeTab === 'registry' && (
-          <div className="p-4 space-y-4">
-            {/* Model Registry Header with Actions */}
-            <div className="flex justify-between items-center">
-              <div className="text-[#ff8c00] text-sm">MODEL REGISTRY & DATASETS</div>
-              <div className="flex space-x-2">
+      {/* Main Content Area with Collapsible Subcategory Panel */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Collapsible Subcategory Panel */}
+        <div className={`${isSubcategoryPanelOpen ? 'w-56' : 'w-12'} border-r border-[#444] bg-[#0a0a0a] transition-all duration-300 flex-shrink-0 flex flex-col`}>
+          <button
+            onClick={() => setIsSubcategoryPanelOpen(!isSubcategoryPanelOpen)}
+            className="w-full py-2 px-2 flex items-center justify-center text-[#ff8c00] hover:bg-[#1a1a1a] border-b border-[#444]"
+          >
+            {isSubcategoryPanelOpen ? (
+              <>
+                <ChevronLeft className="w-4 h-4" />
+                <span className="ml-2 text-[10px]">MLFLOW</span>
+              </>
+            ) : (
+              <ChevronRight className="w-4 h-4" />
+            )}
+          </button>
+
+          {isSubcategoryPanelOpen && (
+            <div className="flex-1 overflow-y-auto">
+              {/* MLflow Status */}
+              <div className="px-2 py-2 border-b border-[#333]">
+                <div className="flex items-center space-x-2">
+                  <div className={`w-2 h-2 rounded-full ${mlflowStatus?.status === 'available' ? 'bg-green-400' : 'bg-red-400'}`} />
+                  <span className="text-[9px] text-[#666]">
+                    {mlflowStatus?.status === 'available' ? 'CONNECTED' : 'OFFLINE'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Subcategory Navigation */}
+              <div className="py-2">
+                <div className="px-2 text-[9px] text-[#666] mb-2">MLFLOW</div>
+
                 <button
-                  onClick={() => setShowNewDatasetModal(true)}
-                  className="px-3 py-1 bg-[#ff8c00] text-black text-xs font-medium hover:bg-[#ffaa33] transition-colors flex items-center space-x-1"
+                  onClick={() => setActiveSubcategory(activeSubcategory === 'experiments' ? null : 'experiments')}
+                  className={`w-full px-2 py-2 flex items-center space-x-2 text-[10px] hover:bg-[#1a1a1a] ${activeSubcategory === 'experiments' ? 'bg-[#1a1a1a] text-[#ff8c00]' : 'text-[#999]'}`}
                 >
-                  <Plus className="w-3 h-3" />
-                  <span>NEW DATASET</span>
+                  <FlaskConical className="w-3 h-3" />
+                  <span>Experiments</span>
+                  <span className="ml-auto text-[#666]">{mlflowExperiments.length}</span>
                 </button>
+
                 <button
-                  onClick={() => {
-                    loadModels();
-                    loadMLOpsData();
-                  }}
-                  className="px-3 py-1 bg-gray-700 text-white text-xs font-medium hover:bg-gray-600 transition-colors flex items-center space-x-1"
+                  onClick={() => setActiveSubcategory(activeSubcategory === 'runs' ? null : 'runs')}
+                  className={`w-full px-2 py-2 flex items-center space-x-2 text-[10px] hover:bg-[#1a1a1a] ${activeSubcategory === 'runs' ? 'bg-[#1a1a1a] text-[#ff8c00]' : 'text-[#999]'}`}
                 >
-                  <RefreshCw className="w-3 h-3" />
-                  <span>REFRESH</span>
+                  <GitBranch className="w-3 h-3" />
+                  <span>Runs</span>
+                  <span className="ml-auto text-[#666]">{mlflowRuns.length}</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSubcategory(activeSubcategory === 'models' ? null : 'models')}
+                  className={`w-full px-2 py-2 flex items-center space-x-2 text-[10px] hover:bg-[#1a1a1a] ${activeSubcategory === 'models' ? 'bg-[#1a1a1a] text-[#ff8c00]' : 'text-[#999]'}`}
+                >
+                  <Layers className="w-3 h-3" />
+                  <span>Models</span>
+                  <span className="ml-auto text-[#666]">{mlflowModels.length}</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSubcategory(activeSubcategory === 'serving' ? null : 'serving')}
+                  className={`w-full px-2 py-2 flex items-center space-x-2 text-[10px] hover:bg-[#1a1a1a] ${activeSubcategory === 'serving' ? 'bg-[#1a1a1a] text-[#ff8c00]' : 'text-[#999]'}`}
+                >
+                  <Server className="w-3 h-3" />
+                  <span>Serving</span>
+                  <span className="ml-auto text-[#666]">{servingEndpoints.length}</span>
                 </button>
               </div>
+
+              {/* Subcategory Content */}
+              {activeSubcategory === 'experiments' && (
+                <div className="border-t border-[#333] p-2">
+                  <div className="text-[9px] text-[#666] mb-2">EXPERIMENTS</div>
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {mlflowExperiments.map(exp => (
+                      <button
+                        key={exp.experiment_id}
+                        onClick={() => {
+                          setSelectedExperiment(exp);
+                          loadExperimentRuns(exp.name);
+                        }}
+                        className={`w-full px-2 py-1 text-left text-[9px] hover:bg-[#222] rounded ${selectedExperiment?.experiment_id === exp.experiment_id ? 'bg-[#222] text-[#ff8c00]' : 'text-[#999]'}`}
+                      >
+                        <div className="truncate">{exp.name}</div>
+                        <div className="text-[8px] text-[#555]">{exp.lifecycle_stage}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeSubcategory === 'runs' && selectedExperiment && (
+                <div className="border-t border-[#333] p-2">
+                  <div className="text-[9px] text-[#666] mb-2">RUNS - {selectedExperiment.name}</div>
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {mlflowRuns.map(run => (
+                      <button
+                        key={run.run_id}
+                        onClick={() => toggleRunSelection(run.run_id)}
+                        className={`w-full px-2 py-1 text-left text-[9px] hover:bg-[#222] rounded flex items-center ${selectedRuns.includes(run.run_id) ? 'bg-[#222] text-[#ff8c00]' : 'text-[#999]'}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedRuns.includes(run.run_id)}
+                          onChange={() => {}}
+                          className="mr-2 w-3 h-3"
+                        />
+                        <div className="flex-1 truncate">
+                          <div>{run.run_name || run.run_id.slice(0, 8)}</div>
+                          <div className={`text-[8px] ${run.status === 'FINISHED' ? 'text-green-400' : run.status === 'RUNNING' ? 'text-yellow-400' : 'text-red-400'}`}>
+                            {run.status}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  {selectedRuns.length >= 2 && (
+                    <button
+                      onClick={handleCompareRuns}
+                      className="w-full mt-2 px-2 py-1 bg-[#ff8c00] text-black text-[9px] hover:bg-[#ffaa33]"
+                    >
+                      COMPARE ({selectedRuns.length})
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {activeSubcategory === 'models' && (
+                <div className="border-t border-[#333] p-2">
+                  <div className="text-[9px] text-[#666] mb-2">REGISTERED MODELS</div>
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {mlflowModels.map(model => (
+                      <div key={model.name} className="px-2 py-1 text-[9px] text-[#999] hover:bg-[#222] rounded">
+                        <div className="text-[#fff]">{model.name}</div>
+                        <div className="flex items-center space-x-2 mt-1">
+                          {model.latest_versions.map(v => (
+                            <span
+                              key={v.version}
+                              className={`px-1 py-0.5 text-[8px] rounded ${
+                                v.current_stage === 'Production' ? 'bg-green-900 text-green-400' :
+                                v.current_stage === 'Staging' ? 'bg-yellow-900 text-yellow-400' :
+                                'bg-gray-800 text-gray-400'
+                              }`}
+                            >
+                              v{v.version} {v.current_stage}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeSubcategory === 'serving' && (
+                <div className="border-t border-[#333] p-2">
+                  <div className="text-[9px] text-[#666] mb-2">SERVING ENDPOINTS</div>
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {servingEndpoints.length > 0 ? (
+                      servingEndpoints.map((ep, idx) => (
+                        <div key={idx} className="px-2 py-1 text-[9px] text-[#999] hover:bg-[#222] rounded">
+                          <div className="text-[#00ff00]">{ep.model_name}</div>
+                          <div className="text-[8px]">v{ep.model_version} - {ep.status}</div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-[9px] text-[#555]">No active endpoints</div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
+          )}
+        </div>
+
+        {/* Tab Content */}
+        <div className="flex-1 overflow-y-auto">
+          {activeTab === 'registry' && (
+            <div className="p-4 space-y-4">
+              {/* MLflow Run Comparison Chart */}
+              {runComparison && runComparison.runs.length > 0 && (
+                <div className="border border-[#444] mb-4">
+                  <div className="bg-[#1a1a1a] px-3 py-2 border-b border-[#444] flex justify-between items-center">
+                    <div className="text-[#ff8c00]">RUN COMPARISON</div>
+                    <button
+                      onClick={() => setRunComparison(null)}
+                      className="text-[#666] hover:text-[#fff]"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <div className="p-3">
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={comparisonChartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                          <XAxis dataKey="metric" tick={{ fontSize: 9, fill: '#999' }} />
+                          <YAxis tick={{ fontSize: 9, fill: '#999' }} />
+                          <Tooltip
+                            contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #444' }}
+                            labelStyle={{ color: '#ff8c00' }}
+                          />
+                          <Legend wrapperStyle={{ fontSize: 9 }} />
+                          {runComparison.runs.map((run, idx) => (
+                            <Bar
+                              key={run.run_id}
+                              dataKey={run.run_name || run.run_id}
+                              fill={['#ff8c00', '#00ff00', '#00ffff', '#ff00ff'][idx % 4]}
+                            />
+                          ))}
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Model Registry Header with Actions */}
+              <div className="flex justify-between items-center">
+                <div className="text-[#ff8c00] text-sm">MODEL REGISTRY & DATASETS</div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setShowNewDatasetModal(true)}
+                    className="px-3 py-1 bg-[#ff8c00] text-black text-xs font-medium hover:bg-[#ffaa33] transition-colors flex items-center space-x-1"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>NEW DATASET</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      loadModels();
+                      loadMLOpsData();
+                      loadMLflowData();
+                    }}
+                    className="px-3 py-1 bg-gray-700 text-white text-xs font-medium hover:bg-gray-600 transition-colors flex items-center space-x-1"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>REFRESH</span>
+                  </button>
+                </div>
+              </div>
 
             {/* Training Datasets */}
             <div className="border border-[#444]">
@@ -1082,6 +1407,7 @@ export function MLOps() {
             </div>
           </div>
         )}
+        </div>
       </div>
       {/* Modals */}
       {/* New Dataset Modal */}

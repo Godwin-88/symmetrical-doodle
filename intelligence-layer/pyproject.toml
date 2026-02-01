@@ -62,6 +62,11 @@ dependencies = [
     "duckduckgo-search>=4.1.0",
     "accelerate>=0.25.0",
     "bitsandbytes>=0.41.0",
+    # MLflow and ML Operations
+    "mlflow>=2.10.0",
+    "mlflow-skinny>=2.10.0",
+    "onnx>=1.15.0",
+    "onnxruntime>=1.17.0",
 ]
 
 [project.optional-dependencies]

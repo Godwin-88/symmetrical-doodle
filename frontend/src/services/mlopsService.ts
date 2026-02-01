@@ -90,6 +90,89 @@ export interface ValidationMetrics {
   drift_detection: number;
   overall_score: number;
 }
+
+// MLflow Types
+export interface MLflowExperiment {
+  experiment_id: string;
+  name: string;
+  artifact_location: string;
+  lifecycle_stage: string;
+  tags: Record<string, string>;
+  creation_time: string | null;
+  last_update_time: string | null;
+}
+
+export interface MLflowRun {
+  run_id: string;
+  experiment_id: string;
+  run_name: string | null;
+  status: 'RUNNING' | 'SCHEDULED' | 'FINISHED' | 'FAILED' | 'KILLED';
+  start_time: string | null;
+  end_time: string | null;
+  artifact_uri: string;
+  lifecycle_stage: string;
+  metrics: Record<string, number>;
+  params: Record<string, string>;
+  tags: Record<string, string>;
+}
+
+export interface MLflowRegisteredModel {
+  name: string;
+  creation_timestamp: string;
+  last_updated_timestamp: string;
+  description: string | null;
+  latest_versions: Array<{
+    version: string;
+    current_stage: string;
+    run_id: string;
+  }>;
+  tags: Record<string, string>;
+}
+
+export interface MLflowModelVersion {
+  name: string;
+  version: string;
+  creation_timestamp: string;
+  last_updated_timestamp: string;
+  current_stage: 'None' | 'Staging' | 'Production' | 'Archived';
+  description: string | null;
+  source: string;
+  run_id: string;
+  status: string;
+  tags: Record<string, string>;
+}
+
+export interface MLflowArtifact {
+  path: string;
+  is_dir: boolean;
+  file_size: number | null;
+}
+
+export interface MLflowRunComparison {
+  runs: Array<{
+    run_id: string;
+    run_name: string | null;
+    status: string;
+    start_time: string | null;
+    end_time: string | null;
+  }>;
+  metrics: Record<string, Record<string, number | null>>;
+  params: Record<string, Record<string, string | null>>;
+  metric_stats: Record<string, {
+    min: number;
+    max: number;
+    mean: number;
+    best_run: string;
+  }>;
+}
+
+export interface MLflowServingEndpoint {
+  model_name: string;
+  model_version: string;
+  endpoint: string;
+  status: string;
+  run_id: string;
+}
 // API Base URLs
 const INTELLIGENCE_API_BASE = 'http://localhost:8000';
 const EXECUTION_API_BASE = 'http://localhost:8001';
@@ -572,5 +655,330 @@ export function getSeverityColor(severity: string): string {
     case 'MEDIUM': return 'text-yellow-400';
     case 'LOW': return 'text-green-400';
     default: return 'text-gray-400';
+  }
+}
+
+// ==================== MLflow API Functions ====================
+
+// MLflow Status
+export async function getMLflowStatus(): Promise<{ status: string; tracking_uri?: string; default_experiment?: string }> {
+  try {
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/status`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('MLflow status API failed:', error);
+    return { status: 'unavailable' };
+  }
+}
+
+// Experiment Management
+export async function listMLflowExperiments(includeDeleted: boolean = false): Promise<MLflowExperiment[]> {
+  try {
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/experiments?include_deleted=${includeDeleted}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('List MLflow experiments API failed, using mock data:', error);
+    return [
+      {
+        experiment_id: 'exp_001',
+        name: 'financial-models-v2',
+        artifact_location: 's3://mlflow-artifacts/experiments/financial-models-v2',
+        lifecycle_stage: 'active',
+        tags: { 'project': 'trading-system' },
+        creation_time: '2024-01-01T00:00:00Z',
+        last_update_time: '2024-01-15T14:30:00Z',
+      },
+      {
+        experiment_id: 'exp_002',
+        name: 'regime-detection',
+        artifact_location: 's3://mlflow-artifacts/experiments/regime-detection',
+        lifecycle_stage: 'active',
+        tags: { 'project': 'trading-system', 'type': 'classification' },
+        creation_time: '2024-01-05T00:00:00Z',
+        last_update_time: '2024-01-14T10:20:00Z',
+      },
+      {
+        experiment_id: 'exp_003',
+        name: 'market-embedding-tcn',
+        artifact_location: 's3://mlflow-artifacts/experiments/market-embedding-tcn',
+        lifecycle_stage: 'active',
+        tags: { 'project': 'trading-system', 'type': 'embedding' },
+        creation_time: '2024-01-10T00:00:00Z',
+        last_update_time: '2024-01-15T16:45:00Z',
+      },
+    ];
+  }
+}
+
+export async function createMLflowExperiment(name: string, artifactLocation?: string, tags?: Record<string, string>): Promise<{ experiment_id: string; name: string }> {
+  try {
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/experiments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, artifact_location: artifactLocation, tags })
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('Create MLflow experiment API failed:', error);
+    return { experiment_id: `exp_${Date.now()}`, name };
+  }
+}
+
+export async function getMLflowExperiment(name: string): Promise<MLflowExperiment | null> {
+  try {
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/experiments/${encodeURIComponent(name)}`);
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('Get MLflow experiment API failed:', error);
+    return null;
+  }
+}
+
+// Run Management
+export async function listMLflowRuns(experimentName: string, filterString: string = '', maxResults: number = 100): Promise<MLflowRun[]> {
+  try {
+    const params = new URLSearchParams({
+      filter_string: filterString,
+      max_results: maxResults.toString()
+    });
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/experiments/${encodeURIComponent(experimentName)}/runs?${params}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('List MLflow runs API failed, using mock data:', error);
+    return [
+      {
+        run_id: 'run_abc123',
+        experiment_id: 'exp_001',
+        run_name: 'tcn-training-v2.1',
+        status: 'FINISHED',
+        start_time: '2024-01-15T09:30:00Z',
+        end_time: '2024-01-15T12:45:00Z',
+        artifact_uri: 's3://mlflow-artifacts/runs/abc123/artifacts',
+        lifecycle_stage: 'active',
+        metrics: { loss: 0.0234, val_loss: 0.0287, accuracy: 0.873 },
+        params: { learning_rate: '0.001', batch_size: '64', epochs: '100' },
+        tags: { 'mlflow.runName': 'tcn-training-v2.1' },
+      },
+      {
+        run_id: 'run_def456',
+        experiment_id: 'exp_001',
+        run_name: 'tcn-training-v2.0',
+        status: 'FINISHED',
+        start_time: '2024-01-14T14:00:00Z',
+        end_time: '2024-01-14T17:30:00Z',
+        artifact_uri: 's3://mlflow-artifacts/runs/def456/artifacts',
+        lifecycle_stage: 'active',
+        metrics: { loss: 0.0298, val_loss: 0.0345, accuracy: 0.856 },
+        params: { learning_rate: '0.0005', batch_size: '32', epochs: '80' },
+        tags: { 'mlflow.runName': 'tcn-training-v2.0' },
+      },
+    ];
+  }
+}
+
+export async function getMLflowRun(runId: string): Promise<MLflowRun | null> {
+  try {
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/runs/${runId}`);
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('Get MLflow run API failed:', error);
+    return null;
+  }
+}
+
+export async function getMLflowRunMetrics(runId: string): Promise<{ run_id: string; metrics: Record<string, number> }> {
+  try {
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/runs/${runId}/metrics`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('Get MLflow run metrics API failed:', error);
+    return { run_id: runId, metrics: {} };
+  }
+}
+
+export async function compareMLflowRuns(runIds: string[], metricKeys?: string[]): Promise<MLflowRunComparison> {
+  try {
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/runs/compare`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ run_ids: runIds, metric_keys: metricKeys })
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('Compare MLflow runs API failed:', error);
+    return { runs: [], metrics: {}, params: {}, metric_stats: {} };
+  }
+}
+
+// Model Registry
+export async function listMLflowModels(maxResults: number = 100): Promise<MLflowRegisteredModel[]> {
+  try {
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/models?max_results=${maxResults}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('List MLflow models API failed, using mock data:', error);
+    return [
+      {
+        name: 'regime_detector',
+        creation_timestamp: '2024-01-05T00:00:00Z',
+        last_updated_timestamp: '2024-01-15T10:00:00Z',
+        description: 'TCN-based market regime classifier',
+        latest_versions: [
+          { version: '3', current_stage: 'Production', run_id: 'run_abc123' },
+          { version: '2', current_stage: 'Archived', run_id: 'run_def456' },
+        ],
+        tags: { 'model_type': 'classifier' },
+      },
+      {
+        name: 'market_embedding',
+        creation_timestamp: '2024-01-08T00:00:00Z',
+        last_updated_timestamp: '2024-01-14T15:30:00Z',
+        description: 'Market state embedding model',
+        latest_versions: [
+          { version: '2', current_stage: 'Staging', run_id: 'run_ghi789' },
+          { version: '1', current_stage: 'Production', run_id: 'run_jkl012' },
+        ],
+        tags: { 'model_type': 'embedding' },
+      },
+    ];
+  }
+}
+
+export async function getMLflowModelVersion(name: string, version: string): Promise<MLflowModelVersion | null> {
+  try {
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/models/${encodeURIComponent(name)}/versions/${version}`);
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('Get MLflow model version API failed:', error);
+    return null;
+  }
+}
+
+export async function getLatestMLflowModelVersion(name: string, stages?: string): Promise<MLflowModelVersion | null> {
+  try {
+    const params = stages ? `?stages=${encodeURIComponent(stages)}` : '';
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/models/${encodeURIComponent(name)}/latest${params}`);
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('Get latest MLflow model version API failed:', error);
+    return null;
+  }
+}
+
+export async function transitionMLflowModelStage(
+  name: string,
+  version: string,
+  stage: 'None' | 'Staging' | 'Production' | 'Archived',
+  archiveExisting: boolean = true
+): Promise<MLflowModelVersion> {
+  try {
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/models/transition`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, version, stage, archive_existing: archiveExisting })
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('Transition MLflow model stage API failed:', error);
+    throw error;
+  }
+}
+
+// Artifacts
+export async function listMLflowArtifacts(runId: string, path?: string): Promise<MLflowArtifact[]> {
+  try {
+    const params = path ? `?path=${encodeURIComponent(path)}` : '';
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/runs/${runId}/artifacts${params}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('List MLflow artifacts API failed:', error);
+    return [];
+  }
+}
+
+// Serving
+export async function listMLflowServingEndpoints(): Promise<{ endpoints: MLflowServingEndpoint[] }> {
+  try {
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/serving/endpoints`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('List MLflow serving endpoints API failed:', error);
+    return { endpoints: [] };
+  }
+}
+
+export async function deployMLflowModel(config: {
+  model_name: string;
+  model_version: string;
+  endpoint_name: string;
+  traffic_percentage?: number;
+  enable_shadow_mode?: boolean;
+}): Promise<{
+  status: string;
+  endpoint: string;
+  model_name: string;
+  model_version: string;
+}> {
+  try {
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/serving/deploy`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config)
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.warn('Deploy MLflow model API failed:', error);
+    return {
+      status: 'deploying',
+      endpoint: `/api/v1/mlflow/serve/${config.model_name}`,
+      model_name: config.model_name,
+      model_version: config.model_version,
+    };
+  }
+}
+
+// Logging (for active runs)
+export async function logMLflowParams(runId: string, params: Record<string, any>): Promise<void> {
+  try {
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/log/params`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ run_id: runId, params })
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  } catch (error) {
+    console.warn('Log MLflow params API failed:', error);
+  }
+}
+
+export async function logMLflowMetrics(runId: string, metrics: Record<string, number>, step?: number): Promise<void> {
+  try {
+    const response = await fetch(`${INTELLIGENCE_API_BASE}/api/v1/mlflow/log/metrics`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ run_id: runId, metrics, step })
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  } catch (error) {
+    console.warn('Log MLflow metrics API failed:', error);
   }
 }

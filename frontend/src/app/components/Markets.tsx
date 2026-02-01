@@ -11,6 +11,7 @@ import {
   type LiquidityData,
   type MarketEvent,
 } from '../../services/marketsService';
+import { Derivatives } from './Derivatives';
 import {
   getDerivTick,
   getDerivAccount,
@@ -32,7 +33,7 @@ import {
 // TYPE DEFINITIONS
 // ============================================================================
 
-type MarketCategory = 'WATCHLISTS' | 'ALERTS' | 'INSTRUMENTS' | 'ANALYTICS' | 'EVENTS';
+type MarketCategory = 'WATCHLISTS' | 'ALERTS' | 'INSTRUMENTS' | 'ANALYTICS' | 'EVENTS' | 'DERIVATIVES';
 
 interface WatchlistItem {
   id: string;
@@ -187,6 +188,9 @@ const generateMockEvents = (): MarketEvent[] => {
 export function Markets() {
   // Category selection state
   const [selectedCategory, setSelectedCategory] = useState<MarketCategory>('WATCHLISTS');
+
+  // Collapsible panel state
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
 
   // Market data state
   const [liveData, setLiveData] = useState<LiveMarketData[]>([]);
@@ -401,13 +405,23 @@ export function Markets() {
     { key: 'INSTRUMENTS', label: 'INSTRUMENTS', count: instruments.length },
     { key: 'ANALYTICS', label: 'ANALYTICS', count: 4 },
     { key: 'EVENTS', label: 'MARKET EVENTS', count: events.length },
+    { key: 'DERIVATIVES', label: 'DERIVATIVES', count: 9 },
   ];
 
   return (
     <div className="flex h-full font-mono text-xs">
-      {/* Left Panel - Category Selection */}
-      <div className="w-80 border-r border-[#444] bg-[#0a0a0a] overflow-y-auto">
-        <div className="p-4">
+      {/* Left Panel - Category Selection (Collapsible) */}
+      <div className={`${isLeftPanelCollapsed ? 'w-12' : 'w-64'} border-r border-[#444] bg-[#0a0a0a] overflow-y-auto transition-all duration-300 flex-shrink-0`}>
+        {/* Collapse Toggle Button */}
+        <button
+          onClick={() => setIsLeftPanelCollapsed(!isLeftPanelCollapsed)}
+          className="w-full p-2 border-b border-[#444] text-[#ff8c00] hover:bg-[#1a1a1a] transition-colors flex items-center justify-center"
+        >
+          {isLeftPanelCollapsed ? '»' : '« COLLAPSE'}
+        </button>
+
+        {!isLeftPanelCollapsed && (
+        <div className="p-3">
           <div className="text-[#ff8c00] mb-3 text-[10px] tracking-wider">MARKET CATEGORIES</div>
 
           {/* Category Buttons */}
@@ -518,7 +532,39 @@ export function Markets() {
               ))}
             </div>
           )}
+
+          {selectedCategory === 'DERIVATIVES' && (
+            <div className="space-y-2">
+              <div className="text-[#ff8c00] mb-2 text-[10px] tracking-wider">DERIVATIVES TRADING</div>
+              <div className="text-[#888] text-[9px] mb-4">
+                Options, futures, and structured products with real-time pricing and Greeks.
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between p-2 border border-[#333] hover:border-[#ff8c00] cursor-pointer">
+                  <span className="text-[#00ff00] text-[10px]">ASSETS</span>
+                  <span className="text-[#666] text-[9px]">9</span>
+                </div>
+                <div className="flex items-center justify-between p-2 border border-[#333] hover:border-[#ff8c00] cursor-pointer">
+                  <span className="text-[#00ff00] text-[10px]">OPTIONS</span>
+                  <span className="text-[#666] text-[9px]">Pricing</span>
+                </div>
+                <div className="flex items-center justify-between p-2 border border-[#333] hover:border-[#ff8c00] cursor-pointer">
+                  <span className="text-[#00ff00] text-[10px]">FUTURES</span>
+                  <span className="text-[#666] text-[9px]">Pricing</span>
+                </div>
+                <div className="flex items-center justify-between p-2 border border-[#333] hover:border-[#ff8c00] cursor-pointer">
+                  <span className="text-[#00ff00] text-[10px]">STRUCTURED</span>
+                  <span className="text-[#666] text-[9px]">5 Types</span>
+                </div>
+                <div className="flex items-center justify-between p-2 border border-[#333] hover:border-[#ff8c00] cursor-pointer">
+                  <span className="text-[#00ff00] text-[10px]">BACKTEST</span>
+                  <span className="text-[#666] text-[9px]">4 Strategies</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
+        )}
       </div>
 
       {/* Center Panel - Main View */}
@@ -830,6 +876,11 @@ export function Markets() {
               ))}
             </div>
           </div>
+        )}
+
+        {/* Derivatives View */}
+        {selectedCategory === 'DERIVATIVES' && (
+          <Derivatives />
         )}
       </div>
 

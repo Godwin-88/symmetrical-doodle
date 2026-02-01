@@ -1,0 +1,40 @@
+# MLflow Model Configuration for Execution Core
+#
+# This file configures ONNX models loaded from MLflow for inference.
+# Models are downloaded from the MLflow artifact store and cached locally.
+
+[models.regime_detector]
+name = "regime_detector"
+version = "3"
+artifact_path = "models/regime_detector/v3/model.onnx"
+mlflow_run_id = "placeholder_run_id"
+input_names = ["input"]
+output_names = ["output"]
+input_shape = [-1, 127, 64]  # [batch, features, sequence_length]
+
+[models.market_embedding]
+name = "market_embedding_tcn"
+version = "2"
+artifact_path = "models/market_embedding/v2/model.onnx"
+mlflow_run_id = "placeholder_run_id"
+input_names = ["input"]
+output_names = ["embedding"]
+input_shape = [-1, 64, 128]  # [batch, features, sequence_length]
+
+[models.strategy_allocator]
+name = "strategy_allocator"
+version = "1"
+artifact_path = "models/strategy_allocator/v1/model.onnx"
+mlflow_run_id = "placeholder_run_id"
+input_names = ["market_state", "portfolio_state"]
+output_names = ["allocation_weights"]
+input_shape = [-1, 256]  # [batch, combined_features]
+
+[models.volatility_predictor]
+name = "volatility_predictor"
+version = "1"
+artifact_path = "models/volatility_predictor/v1/model.onnx"
+mlflow_run_id = "placeholder_run_id"
+input_names = ["returns", "volume"]
+output_names = ["volatility_forecast"]
+input_shape = [-1, 30, 2]  # [batch, lookback, features]

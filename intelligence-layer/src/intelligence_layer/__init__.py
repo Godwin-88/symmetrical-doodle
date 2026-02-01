@@ -6,12 +6,20 @@ from .config import Config, DatabaseConfig, RedisConfig, LoggingConfig
 from .models import IntelligenceState, SimilarityMatch, GraphFeatureSnapshot
 from .rl_environment import TradingEnvironmentMDP, RLAction, RLState, ExecutionAggressiveness
 from .strategy_orchestration import (
-    StrategyOrchestrator, 
-    StrategyRegistry, 
+    StrategyOrchestrator,
+    StrategyRegistry,
     MetaController,
     StrategyDefinition,
     TradeIntent,
     PerformanceMetrics
+)
+from .mlflow_service import (
+    MLflowService,
+    MLflowConfig,
+    ModelStage,
+    RunStatus,
+    get_mlflow_service,
+    is_mlflow_available,
 )
 
 __all__ = [
@@ -32,4 +40,10 @@ __all__ = [
     "StrategyDefinition",
     "TradeIntent",
     "PerformanceMetrics",
+    "MLflowService",
+    "MLflowConfig",
+    "ModelStage",
+    "RunStatus",
+    "get_mlflow_service",
+    "is_mlflow_available",
 ]

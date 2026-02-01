@@ -28,5 +28,10 @@ futures-util = { workspace = true }
 url = { workspace = true }
 warp = "0.3"
 
+# ONNX Runtime for ML model inference
+ort = { version = "2.0", default-features = false, features = ["load-dynamic"] }
+ndarray = "0.15"
+toml = "0.8"
+
 [dev-dependencies]
 proptest = { workspace = true }

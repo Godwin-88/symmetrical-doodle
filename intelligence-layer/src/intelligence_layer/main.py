@@ -41,6 +41,9 @@ from .research_service import FinancialResearchService
 # Derivatives and market data API
 from .derivatives_api import router as derivatives_router
 
+# MLflow integration API
+from .mlflow_routes import router as mlflow_router
+
 # Global configuration and services
 config = load_config()
 llm_config = load_llm_config()
@@ -138,6 +141,9 @@ app.add_middleware(
 
 # Include derivatives and market data API router
 app.include_router(derivatives_router, prefix="/api/v1")
+
+# Include MLflow integration API router
+app.include_router(mlflow_router, prefix="/api/v1")
 
 
 def get_config() -> Config:

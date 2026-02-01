@@ -7,6 +7,7 @@ pub mod execution_manager;
 pub mod health;
 pub mod integration_example;
 pub mod market_data;
+pub mod ml_inference;
 pub mod portfolio;
 pub mod risk;
 pub mod shadow_execution;
