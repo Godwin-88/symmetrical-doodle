@@ -1,5 +1,6 @@
 pub mod config;
 pub mod deriv_adapter;
+pub mod derivatives;
 pub mod event_bus;
 pub mod execution_adapter;
 pub mod execution_manager;

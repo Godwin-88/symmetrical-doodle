@@ -87,7 +87,7 @@ export interface IntelligenceSignal {
   description: string;
 }
 
-export type Domain = 'DASH' | 'WORK' | 'MLOPS' | 'MKTS' | 'INTL' | 'STRT' | 'SIMU' | 'PORT' | 'EXEC' | 'SYST';
+export type Domain = 'DASH' | 'WORK' | 'MLOPS' | 'MKTS' | 'INTL' | 'STRT' | 'SIMU' | 'PORT' | 'EXEC' | 'SYST' | 'NAUT';
 
 interface TradingState {
   currentDomain: Domain;

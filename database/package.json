@@ -1,0 +1,25 @@
+{
+  "name": "@symmetrical-doodle/database",
+  "version": "1.0.0",
+  "description": "Database schema and migrations for the algorithmic trading system",
+  "type": "module",
+  "scripts": {
+    "db:generate": "drizzle-kit generate:pg",
+    "db:push": "drizzle-kit push:pg",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "db:drop": "drizzle-kit drop",
+    "db:init": "psql -f init/01-init.sql && psql -f init/03-derivatives.sql"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.29.0",
+    "@neondatabase/serverless": "^0.6.0",
+    "postgres": "^3.4.0"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.20.0",
+    "dotenv": "^16.3.0",
+    "typescript": "^5.3.0",
+    "@types/node": "^20.10.0"
+  }
+}

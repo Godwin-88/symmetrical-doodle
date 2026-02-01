@@ -40,15 +40,16 @@ Complete documentation is available in the [`docs/`](./docs/) folder:
 
 ### [⚡ Features](./docs/03-features/)
 - **[Dashboard (F1)](./docs/03-features/)** - System overview and health monitoring
-- **[Data Workspace (F2)](./docs/03-features/data-workspace.md)** - Advanced analytics and visualization
-- **[MLOps (F3)](./docs/03-features/data-models.md)** - Model training and deployment
-- **[Markets (F4)](./docs/03-features/markets.md)** - Live market data and analysis
-- **[Intelligence (F5)](./docs/03-features/intelligence.md)** - AI-powered analysis with LLM/RAG
-- **[Strategies (F6)](./docs/03-features/)** - Algorithm development and backtesting
+- **[Markets (F2)](./docs/03-features/markets.md)** - Live market data and analysis
+- **[Intelligence (F3)](./docs/03-features/intelligence.md)** - AI-powered analysis with LLM/RAG
+- **[Strategies (F4)](./docs/03-features/)** - Algorithm development and backtesting
+- **[Portfolio (F5)](./docs/03-features/portfolio.md)** - Risk management and position control
+- **[Execution (F6)](./docs/03-features/)** - Order management and trade execution
 - **[Simulation (F7)](./docs/03-features/simulation.md)** - Advanced backtesting and scenarios
-- **[Portfolio (F8)](./docs/03-features/portfolio.md)** - Risk management and position control
-- **[Execution (F9)](./docs/03-features/)** - Order management and trade execution
+- **[Workspace (F8)](./docs/03-features/data-workspace.md)** - Advanced analytics and visualization
+- **[Nautilus (F9)](./docs/05-integrations/nautilus-trader.md)** - Professional trading integration
 - **[System (F10)](./docs/03-features/)** - Infrastructure monitoring and configuration
+- **[Derivatives](./docs/03-features/derivatives.md)** - Options, futures, and structured products
 
 ### [🚀 Deployment](./docs/04-deployment/)
 - **[Startup Scripts](./docs/04-deployment/startup-scripts.md)** - Automated deployment
@@ -65,6 +66,7 @@ Complete documentation is available in the [`docs/`](./docs/) folder:
 - **[Backend Development](./docs/06-development/backend.md)** - Rust/Python guide
 - **[API Reference](./docs/06-development/api-reference.md)** - Complete API docs
 - **[Testing Guide](./docs/06-development/testing.md)** - Testing strategies
+- **[Database Schema](./docs/06-development/database-schema.md)** - PostgreSQL and Neo4j schema reference
 
 ### [🔧 Troubleshooting](./docs/07-troubleshooting/)
 - **[Common Issues](./docs/07-troubleshooting/common-issues.md)** - Frequently encountered problems
@@ -343,39 +345,60 @@ graph LR
 - **Quality Validation**: Automated data cleansing and validation
 - **System Monitoring**: Comprehensive health checks and performance metrics
 
-## 📊 System Status (January 2025)
+### Derivatives Trading
+- **Options Pricing**: Black-Scholes and Binomial Tree models with full Greeks
+- **Futures Pricing**: Cost-of-carry model with convenience yield support
+- **Structured Products**: Straddles, Strangles, Butterflies, Iron Condors, Calendar Spreads
+- **Backtesting**: Covered Call, Iron Condor strategies with slippage/commission modeling
+- **Supported Assets**: Gold (XAUUSD), Silver (XAGUSD), Major Forex, BTC, ETH
+- **Greeks Suite**: Delta, Gamma, Theta, Vega, Rho, Vanna, Volga, Charm
+- **Risk Management**: Greeks-based position limits in Rust execution core
+
+### Database & GraphRAG
+- **PostgreSQL (Supabase)**: Complete derivatives schema with Drizzle ORM
+- **Neo4j GraphRAG**: Knowledge graph for trading concepts, strategies, and asset relationships
+- **Vector Store**: pgvector for market state and strategy embeddings
+- **Automatic Migrations**: Drizzle Kit for schema versioning
+
+## 📊 System Status (February 2026)
 
 **✅ COMPLETED COMPONENTS:**
 - **Frontend UI**: Complete React/TypeScript interface with 10 functional modules (F1-F10)
-- **Intelligence Module (F5)**: AI-powered analysis with LLM/RAG integration, 4-tab interface
-- **Market Data (F4)**: Real-time data feeds from Deriv API with correlation analysis
-- **Portfolio Management (F8)**: Multi-portfolio support with real-time risk metrics
-- **Strategy Development (F6)**: Algorithm creation with backtesting integration
-- **Execution System (F9)**: Order management with execution quality analytics
-- **Data Workspace (F2)**: Advanced analytics with 8 visualization types
-- **MLOps Pipeline (F3)**: Model training, validation, and deployment
-- **Simulation Engine (F7)**: Institutional-grade backtesting with bias controls
+- **Derivatives Trading**: Full options/futures/structured products with pricing and backtesting
+- **Intelligence Module (F3)**: AI-powered analysis with LLM/RAG integration, 4-tab interface
+- **Market Data (F2)**: Multi-source market data (Yahoo, Alpha Vantage, Binance, Polygon)
+- **Portfolio Management (F5)**: Multi-portfolio support with Greeks-based risk metrics
+- **Strategy Development (F4)**: Algorithm creation with derivatives strategies
+- **Execution System (F6)**: Order management with derivatives support
+- **Simulation Engine (F7)**: Institutional-grade backtesting with derivatives strategies
+- **Workspace (F8)**: Advanced analytics with 8 visualization types
+- **Nautilus Integration (F9)**: Professional trading platform integration
 - **System Monitoring (F1, F10)**: Health checks and performance metrics
+- **Database Layer**: PostgreSQL with Drizzle ORM, Neo4j GraphRAG schema
 
 **🔄 IN PROGRESS:**
 - Backend API integration for real-time data processing
-- Database optimization for high-frequency data
 - WebSocket connections for live market feeds
 - Production deployment automation
 
 **📊 SYSTEM METRICS:**
 - **Frontend**: 10/10 modules functional with comprehensive mock fallbacks
-- **Backend Services**: 15+ microservices implemented (Intelligence, Execution, Market Data)
-- **Database**: PostgreSQL + Neo4j + Vector DB + Redis fully configured
-- **AI/ML**: LLM/RAG services, 18 production models, comprehensive research automation
-- **Testing**: Property-based testing, integration tests, comprehensive user testing guide
-- **Documentation**: Complete user and developer guides with 50+ documentation files
+- **Backend Services**: 20+ microservices (Intelligence, Execution, Derivatives, Market Data)
+- **Database**: PostgreSQL (Drizzle ORM) + Neo4j GraphRAG + pgvector + Redis
+- **Derivatives**: Black-Scholes, Binomial Tree, 5 structured products, 4 backtest strategies
+- **Assets**: Gold, Silver, 5 Forex pairs, Bitcoin, Ethereum with real-time data
+- **AI/ML**: LLM/RAG services, 18 production models, Greeks calculations
+- **Testing**: Property-based testing, integration tests, derivatives pricing tests
+- **Documentation**: Complete user and developer guides with 60+ documentation files
 
-**🆕 LATEST UPDATES (January 2025):**
-- **Intelligence Module Rewritten**: Complete CRUD functionality with AI chat, research reports, document management, and analysis models
-- **Mock Fallback System**: Full UI functionality even when backend services are offline
-- **Enhanced Testing**: Comprehensive user testing guide created
-- **Documentation Updates**: All docs updated with current status
+**🆕 LATEST UPDATES (February 2026):**
+- **Derivatives Trading Module**: Full options, futures, and structured products support
+- **Multi-Source Market Data**: Yahoo Finance, Alpha Vantage, Binance, Polygon with fallback
+- **Drizzle ORM**: TypeScript-first database schema with automatic migrations
+- **Neo4j GraphRAG**: Knowledge graph for derivatives concepts and strategy analysis
+- **Greeks Calculations**: Full suite including second-order (vanna, volga, charm)
+- **Backtesting Engine**: Covered Call, Iron Condor strategies with realistic simulation
+- **Rust Derivatives Core**: Type-safe derivatives handling with risk limits
 
 ## 🛠️ Development
 
@@ -395,6 +418,15 @@ cd intelligence-layer && uvicorn intelligence_layer.main:app --reload
 
 # Frontend (React)
 cd frontend && npm run dev
+
+# Database Setup
+cd database && npm install
+npm run db:push               # Push schema to Supabase
+npm run db:studio             # Open Drizzle Studio
+
+# Neo4j Setup
+cypher-shell < database/init/02-neo4j-init.cypher
+cypher-shell < database/init/04-neo4j-derivatives.cypher
 
 # Tests
 cargo test                    # Rust tests

@@ -8,9 +8,9 @@ const DOMAINS = [
   { key: 'F5', code: 'PORT', label: 'PORTFOLIO' },
   { key: 'F6', code: 'EXEC', label: 'EXECUTION' },
   { key: 'F7', code: 'SIMU', label: 'SIMULATION' },
-  { key: 'F8', code: 'DATA', label: 'DATA & MODELS' },
-  { key: 'F9', code: 'SYST', label: 'SYSTEM' },
-  { key: 'F10', code: 'WORK', label: 'WORKSPACE' },
+  { key: 'F8', code: 'WORK', label: 'WORKSPACE' },
+  { key: 'F9', code: 'NAUT', label: 'NAUTILUS' },
+  { key: 'F10', code: 'SYST', label: 'SYSTEM' },
 ];
 
 export function FunctionKeyBar() {

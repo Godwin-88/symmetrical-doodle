@@ -38,6 +38,9 @@ from .llm_service import LLMService
 from .rag_service import RAGService
 from .research_service import FinancialResearchService
 
+# Derivatives and market data API
+from .derivatives_api import router as derivatives_router
+
 # Global configuration and services
 config = load_config()
 llm_config = load_llm_config()
@@ -132,6 +135,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include derivatives and market data API router
+app.include_router(derivatives_router, prefix="/api/v1")
 
 
 def get_config() -> Config:

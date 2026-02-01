@@ -14,6 +14,7 @@ import { Simulation } from './components/Simulation';
 import { MLOps } from './components/MLOps';
 import { System } from './components/System';
 import { DataWorkspace } from './components/DataWorkspace';
+import { NautilusTrading } from './components/NautilusTrading';
 
 export default function App() {
   const { currentDomain, setCurrentDomain, checkHealth } = useTradingStore();
@@ -25,13 +26,13 @@ export default function App() {
     return () => clearInterval(interval);
   }, [checkHealth]);
 
-  // Updated keyboard shortcuts for new navigation order (Option 1C)
+  // Keyboard shortcuts matching FunctionKeyBar layout
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key >= 'F1' && e.key <= 'F10') {
         e.preventDefault();
-        // New Option 1C sequence: DASH, WORK, MLOPS, MKTS, INTL, STRT, SIMU, PORT, EXEC, SYST
-        const domains = ['DASH', 'WORK', 'MLOPS', 'MKTS', 'INTL', 'STRT', 'SIMU', 'PORT', 'EXEC', 'SYST'];
+        // Matches FunctionKeyBar: DASH, MKTS, INTL, STRT, PORT, EXEC, SIMU, WORK, NAUT, SYST
+        const domains = ['DASH', 'MKTS', 'INTL', 'STRT', 'PORT', 'EXEC', 'SIMU', 'WORK', 'NAUT', 'SYST'];
         const index = parseInt(e.key.slice(1)) - 1;
         if (domains[index]) {
           setCurrentDomain(domains[index] as any);
@@ -63,6 +64,8 @@ export default function App() {
         return <Portfolio />;
       case 'EXEC':
         return <Execution />;
+      case 'NAUT':
+        return <NautilusTrading />;
       case 'SYST':
         return <System />;
       default:
